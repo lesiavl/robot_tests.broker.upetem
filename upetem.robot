@@ -1,732 +1,1134 @@
 *** Settings ***
-Library  Selenium2Screenshots
+
+Library  Selenium2Library
 Library  String
 Library  DateTime
 Library  upetem_service.py
+Library  get_xpath.py
+Library  adapt_data.py
+Resource  subkeywords.robot
+Resource  view.robot
 
 *** Variables ***
-${locator.tenderId}                                            xpath=//*[contains(@class, 'info-tender-id')]//*[@class='value']
-${locator.title}                                               xpath=//*[@class='header-wrapper']//h3
-${locator.description}                                         xpath=//*[@class='description-wrapper']
-${locator.minimalStep.amount}                                  xpath=//*[contains(@class, 'info-min-step')]//*[@class='value']
-${locator.procuringEntity.name}                                xpath=//*[@class='company-information-list-wrapper']/*[1]//span
-${locator.value.amount}                                        xpath=//*[contains(@class, 'info-budget')]//*[@class='value']
-${locator.enquiryPeriod.startDate}                             xpath=//div[@class='date-list-wrapper']/div[1]//span
-${locator.enquiryPeriod.endDate}                               xpath=//div[@class='date-list-wrapper']/div[1]//span
-${locator.tenderPeriod.startDate}                              xpath=//div[@class='date-list-wrapper']/div[2]//span
-${locator.tenderPeriod.endDate}                                xpath=//div[@class='date-list-wrapper']/div[2]//span
-${locator.items[0].deliveryDate.endDate}                       xpath=//div[contains(@id, 'collapse')][1]//div[@class='item-wrapper'][4]/span
-#${locator.items[0].deliveryLocation.latitude}                  id=delivery_latitude0
-#${locator.items[0].deliveryLocation.longitude}                 id=delivery_longitude0
-${locator.items[0].deliveryAddress.countryName}                xpath=//span[@class='country']
-${locator.items[0].deliveryAddress.postalCode}                 xpath=//span[@class='postal_code']
-${locator.items[0].deliveryAddress.region}                     xpath=//span[@class='region']
-${locator.items[0].deliveryAddress.locality}                   xpath=//span[@class='locality']
-${locator.items[0].deliveryAddress.address}                    xpath=//span[@class='address']
-${locator.items[0].description}                                xpath=(//*[@class='panel-heading'])[1]//*[contains(@class, 'description')]
-${locator.items[0].classification.scheme}                      xpath=(//*[contains(@class, 'panel-collapse')])[1]//*[@class='item-wrapper'][1]/label
-${locator.items[0].classification.id}                          xpath=(//*[contains(@class, 'panel-collapse')])[1]//*[@class='item-wrapper'][1]/span
-#${locator.items[0].classification.description}                 xpath=(//*[contains(@class, 'panel-collapse')])[1]//*[@class='item-wrapper'][1]/span
-${locator.items[0].additionalClassifications[0].scheme}        xpath=(//*[contains(@class, 'panel-collapse')])[1]//*[@class='item-wrapper'][2]/label
-${locator.items[0].additionalClassifications[0].id}            xpath=(//*[contains(@class, 'panel-collapse')])[1]//*[@class='item-wrapper'][2]/span
-#${locator.items[0].additionalClassifications[0].description}   xpath=(//*[contains(@class, 'panel-collapse')])[1]//*[@class='item-wrapper'][1]/span
-#${locator.items[0].unit.code}                                  xpath=(//*[@class='panel-heading'])[1]//*[contains(@class, 'quantity')]
-${locator.items[0].quantity}                                   xpath=(//*[@class='panel-heading'])[1]//*[contains(@class, 'quantity')]
 
-${locator.questions[0].title}                                  xpath=(//div[@class='items'])[last()]//*[@class='title-wrapper']//h4
-${locator.questions[0].description}                            xpath=(//div[@class='items'])[last()]//*[@class='question-wrapper'][1]//p
-${locator.questions[0].date}                                   xpath=(//div[@class='items'])[last()]//*[@class='author-wrapper']//span
-${locator.questions[0].answer}                                 xpath=(//div[@class='items'])[last()]//*[@class='answer-wrapper']//p
-${locator.status}                                              xpath=//*[contains(@class, 'opstatus')]
-${tender_page_prefix}=                                         http://dz.upetem.com.ua/tender/
-${tender_sync_prefix}=                                         http://dz.upetem.com.ua/develop/syncTender/
-${tender_sync_postfix}=                                        ?psw=369369
+${mail}          test_test@test.com
+${telephone}     +380630000000
+${bid_number}
+${auction_url}
 
 *** Keywords ***
+
 Підготувати дані для оголошення тендера
-  [Arguments]  @{ARGUMENTS}
-  ${INITIAL_TENDER_DATA}=  test_tender_data
-  [return]   ${INITIAL_TENDER_DATA}
+  [Arguments]  ${username}  ${tender_data}  ${role_name}
+  ${adapted_data}=  Run Keyword If  '${username}' == 'upetem_Owner'
+  ...    upetem_service.adapt_data    ${tender_data}
+  ...    ELSE    upetem_service.adapt_data_view    ${tender_data}
+  [return]  ${adapted_data}
 
 Підготувати клієнт для користувача
-  [Arguments]  ${username}
+  [Arguments]  @{ARGUMENTS}
   [Documentation]  Відкрити браузер, створити об’єкт api wrapper, тощо
-#  Sleep  1
-#  Open Browser  ${USERS.users['${username}'].homepage}  ${USERS.users['${username}'].browser}  alias=${username}
-  Open Browser  ${BROKERS['upetem'].homepage}  ${USERS.users['${username}'].browser}  alias=${username}
-  Set Window Size  @{USERS.users['${username}'].size}
-  Set Window Position  @{USERS.users['${username}'].position}
-  Login  ${username}
+  ...      ${ARGUMENTS[0]} ==  username
+  Open Browser   ${USERS.users['${ARGUMENTS[0]}'].homepage}   ${USERS.users['${ARGUMENTS[0]}'].browser}   alias=${ARGUMENTS[0]}
+  Set Window Size   @{USERS.users['${ARGUMENTS[0]}'].size}
+  Set Window Position   @{USERS.users['${ARGUMENTS[0]}'].position}
+  Run Keyword If   '${ARGUMENTS[0]}' != 'upetem_Viewer'   Вхід  ${ARGUMENTS[0]}
 
-Login
+Вхід
   [Arguments]  ${username}
-  Wait Until Element Is Visible  xpath=//*[contains(@class, 'btn-auth1')]  10
-  Click Link    xpath=//*[contains(@class, 'btn-auth1')]
-  Sleep    1
-  Wait Until Page Contains Element   id=UserLoginForm_email   20
-  Input text   id=UserLoginForm_email      ${USERS.users['${username}'].login}
-  Input text   id=UserLoginForm_password      ${USERS.users['${username}'].password}
-  Click Button   xpath=//*[@type='submit']
-  Wait Until Page Contains          Закупівлі   20
-  #Go To  ${USERS.users['${username}'].homepage}
+  Run Keyword And Ignore Error   Wait Until Page Contains Element    xpath=//*[text()='Вхід']   30
+  Click Element                      xpath=//*[text()='Вхід']
+  #Run Keyword If    '${username}' == 'upetem_Owner'    Click Element    id=mForm:j_idt118
+  Run Keyword And Ignore Error   Wait Until Page Contains Element   id=mForm:email   20
+  Input text   id=mForm:email      ${USERS.users['${username}'].login}
+  Sleep  2
+  Input text   id=mForm:pwd      ${USERS.users['${username}'].password}
+  Click Button   id=mForm:login
+  Sleep  3
+  ${status}=   Run Keyword And Return Status   Page Should Contain Element   id=mForm:j_idt121
+  Run Keyword if   '${status}' == 'True'
+  ...  Run Keywords
+  ...    Wait Until Element Is Visible  id=mForm:j_idt123  30
+  ...    AND  Click Element  id=mForm:j_idt123
+
+
+#                                    TENDER OPERATIONS                                           #
 
 Створити тендер
-  [Arguments]  ${user}  ${tender_data}
-  #${tender_data}=   Add_data_for_GUI_FrontEnds  ${ARGUMENTS[1]}
-  ${tender_data}=   procuring_entity_name  ${tender_data}
-  ${items}=         Get From Dictionary   ${tender_data.data}               items
-  ${title}=         Get From Dictionary   ${tender_data.data}               title
-  ${description}=   Get From Dictionary   ${tender_data.data}               description
-  ${budget}=        Get From Dictionary   ${tender_data.data.value}         amount
-  ${budget}=        Convert To String     ${budget}
-  ${step_rate}=     Get From Dictionary   ${tender_data.data.minimalStep}   amount
-  ${step_rate}=     Convert To String     ${step_rate}
-  ${items_description}=   Get From Dictionary   ${items[0]}         description
-  ${quantity}=      Get From Dictionary   ${items[0]}                        quantity
-  ${quantity}=      Convert To String     ${quantity}
-  ${cpv}=           Get From Dictionary   ${items[0].classification}         id
-  ${unit}=          Get From Dictionary   ${items[0].unit}                   name
-  ${latitude}       Get From Dictionary   ${items[0].deliveryLocation}    latitude
-  ${longitude}      Get From Dictionary   ${items[0].deliveryLocation}    longitude
-  ${postalCode}    Get From Dictionary   ${items[0].deliveryAddress}     postalCode
-  ${streetAddress}    Get From Dictionary   ${items[0].deliveryAddress}     streetAddress
-  ${deliveryDate}   Get From Dictionary   ${items[0].deliveryDate}        endDate
-  ${start_date}=    Get From Dictionary   ${tender_data.data.tenderPeriod}   startDate
-  ${start_date}=    convert_datetime_for_delivery   ${start_date}
-  ${end_date}=      Get From Dictionary   ${tender_data.data.tenderPeriod}   endDate
-  ${end_date}=      convert_datetime_for_delivery   ${end_date}
-  ${enquiry_start_date}=    Get From Dictionary   ${tender_data.data.enquiryPeriod}   startDate
-  ${enquiry_start_date}=    convert_datetime_for_delivery   ${enquiry_start_date}
-  ${enquiry_end_date}=      Get From Dictionary   ${tender_data.data.enquiryPeriod}   endDate
-  ${enquiry_end_date}=      convert_datetime_for_delivery   ${enquiry_end_date}
-  
-  Selenium2Library.Switch Browser    ${user}
-  Go To                             ${USERS.users['${user}'].homepage}
-  Wait Until Page Contains          Закупівлі   10
-  Sleep  1
-  Click Element                     xpath=//*[contains(@class, 'btn-success')]
-  Sleep  1
-  Wait Until Page Contains          Створення закупівлі  10
-  Input text    id=TenderForm_op_title                  ${title}
-  Input text    id=TenderForm_op_description            ${description}
-  Input text    id=TenderForm_op_value_amount                  ${budget}
-  Click Element                     id=TenderForm_op_value_added_tax_included
-  Input text    id=TenderForm_op_min_step_amount            ${step_rate}
-  Input text    id=TenderForm_op_enquiry_period_start_date        ${enquiry_start_date}
-  Input text    id=TenderForm_op_enquiry_period_end_date          ${enquiry_end_date}
-  Input text    id=TenderForm_op_tender_period_start_date        ${start_date}
-  Input text    id=TenderForm_op_tender_period_end_date          ${end_date}
- 
-  Додати предмет   ${items[0]}   0
-  Run Keyword if   '${mode}' == 'multi'   Додати багато предметів   items
-  Sleep  1
+  [Arguments]  @{ARGUMENTS}
+  [Documentation]
+  ...      ${ARGUMENTS[0]} ==  username
+  ...      ${ARGUMENTS[1]} ==  tender_data
+  #${file_path}=        local_path_to_file   TestDocument.docx
+  ${prepared_tender_data}=   Get From Dictionary    ${ARGUMENTS[1]}                       data
+  ${items}=                  Get From Dictionary    ${prepared_tender_data}               items
+  ${lots}                    Get From Dictionary   ${prepared_tender_data}                   lots
+  ${lot_title}               Get From Dictionary   ${lots[0]}                             title
+  ${lot_desc}                Get From Dictionary   ${lots[0]}                             description
+  ${lot_value_amount}        Get From Dictionary   ${lots[0].value}                       amount
+  ${lot_step_rate}           Get From Dictionary   ${lots[0].minimalStep}                 amount
+  #${features}=               Get From Dictionary    ${prepared_tender_data}               features
+  ${title}=                  Get From Dictionary    ${prepared_tender_data}               title
+  ${title_en}=               Get From Dictionary    ${prepared_tender_data}               title_en
+  ${description}=            Get From Dictionary    ${prepared_tender_data}               description
+  ${description_en}=         Get From Dictionary    ${prepared_tender_data}               description_en
 
-  Select Checkbox  id=TenderForm_op_mode
-  #Wait Until Page Contains Element   xpath=//*[@type='submit']
-  Click Element   xpath=//*[@type='submit']
-  Sleep  1
-  Wait Until Page Contains   Закупівля успішно створена   10
-  #Sleep   2
-  ${tender_UAid}=  Get Text  xpath=//*[contains(@class, 'info-tender-id')]//*[@class='value']
-  #Log To Console  ${tender_UAid}
-  ${Ids}=   Convert To String   ${tender_UAid}
-  Save Tender ID
-  Log  ${Ids}
+  ${budget}=                 Get From Dictionary    ${prepared_tender_data.value}         amount
+  ${budget}=                 upetem_service.convert_float_to_string                    ${budget}
+  ${step_rate}=              Get From Dictionary    ${prepared_tender_data.minimalStep}   amount
+  ${step_rate}=              upetem_service.convert_float_to_string                    ${step_rate}
+  ${enquiry_period}=        Get From Dictionary   ${prepared_tender_data}                enquiryPeriod
+  ${enquiry_period_end_date}=        upetem_service.convert_date_to_string            ${enquiry_period.endDate}
+  ${tender_period}=          Get From Dictionary   ${prepared_tender_data}                tenderPeriod
+  ${tender_period_start_date}=  upetem_service.convert_date_to_string  ${tender_period.startDate}
+  ${tender_period_end_date}=  upetem_service.convert_date_to_string  ${tender_period.endDate}
+  ${countryName}=   Get From Dictionary   ${prepared_tender_data.procuringEntity.address}       countryName
+  ${item_description}=    Get From Dictionary    ${items[0]}    description
+  ${item_description_en}=    Get From Dictionary    ${items[0]}    description_en
+  ${delivery_start_date}=    Get From Dictionary    ${items[0].deliveryDate}   startDate
+  ${delivery_start_date}=    upetem_service.convert_item_date_to_string    ${delivery_start_date}
+  ${delivery_end_date}=      Get From Dictionary   ${items[0].deliveryDate}   endDate
+  ${delivery_end_date}=      upetem_service.convert_item_date_to_string  ${delivery_end_date}
+  ${item_delivery_region}=      Get From Dictionary    ${items[0].deliveryAddress}    region
+  ${item_delivery_region}=     upetem_service.get_delivery_region    ${item_delivery_region}
+  ${item_locality}=  Get From Dictionary  ${items[0].deliveryAddress}  locality
+  ${item_delivery_address_street_address}=  Get From Dictionary  ${items[0].deliveryAddress}  streetAddress
+  ${item_delivery_postal_code}=  Get From Dictionary  ${items[0].deliveryAddress}  postalCode
+  ${latitude}=  Get From Dictionary  ${items[0].deliveryLocation}  latitude
+  ${latitude}=  upetem_service.convert_coordinates_to_string    ${latitude}
+  ${longitude}=  Get From Dictionary  ${items[0].deliveryLocation}    longitude
+  ${longitude}=  upetem_service.convert_coordinates_to_string    ${longitude}
+  ${cpv_id}=           Get From Dictionary   ${items[0].classification}         id
+  ${cpv_id_1}=           Get Substring    ${cpv_id}   0   3
+  ${dkpp_id}=        Convert To String     000
+  #${dkpp_desc}=     Get From Dictionary   ${items[0].additionalClassifications[0]}   description
+  #${dkpp_id}=       Get From Dictionary   ${items[0].additionalClassifications[0]}  id
+  ${code}=           Get From Dictionary   ${items[0].unit}          code
+  ${quantity}=      Get From Dictionary   ${items[0]}                        quantity
+  ${name}=      Get From Dictionary   ${prepared_tender_data.procuringEntity.contactPoint}       name
+  #${name_en}=    Get From Dictionary    ${prepared_tender_data.procuringEntity.contactPoint}     name_en
+  #${procurement_type}=      Get From Dictionary   ${prepared_tender_data}   procurementMethodType
+  Selenium2Library.Switch Browser     ${ARGUMENTS[0]}
+  Wait Until Element Is Visible       xpath=//a[text()='Закупівлі']   10
+  Click Element                       xpath=//a[text()='Закупівлі']
+  Wait Until Page Contains Element    xpath=//*[text()='НОВА ЗАКУПІВЛЯ']   10
+  Click Element                       xpath=//*[text()='НОВА ЗАКУПІВЛЯ']
+  Wait Until Element Is Visible       xpath=//*[@id='mForm:procurementType_label']  10
+  Click Element                       xpath=//*[@id='mForm:procurementType_label']
+  Sleep  2
+  ${procurement_type_xpath}=          get_xpath.get_procurement_type_xpath    ${mode}
+  Click Element                       xpath=${procurement_type_xpath}
+  #Run Keyword If  '${mode}' == 'belowThreshold'  Click Element  //*[@id='mForm:procurementType_0']
+  Sleep  2
+  Click Element                       xpath=//*[@id="mForm:chooseProcurementTypeBtn"]
+  ###Wait Until Element Is Visible       xpath=//*[@id='mForm:j_idt96:j_idt99']  30
+  ###Click Element                       xpath=//*[@id='mForm:j_idt96:j_idt99']
+  Wait Until Page Contains Element    id=mForm:name  10
+  Input text                          id=mForm:name     ${title}
+  Input text                          id=mForm:desc     ${description}
+  Click Element                       id=mForm:cKind_label
+  Sleep  2
+  Click Element                       xpath=//div[@id='mForm:cKind_panel']//li[3]
+  ${budget_selector}=  Set Variable If  ${NUMBER_OF_LOTS}==0  mForm:budget  mForm:lotBudg0
+  Input text                          id=${budget_selector}   ${budget}
+  Input text                          id=mForm:lotTitle0  ${lot_title}
+  Input text                          id=mForm:lotDesc0   ${lot_desc}
+# Input text                          id=mForm:lotStep0   ${lot_step_rate}
+  ${vat_selector}=  Set Variable If  ${NUMBER_OF_LOTS}==0  mForm:vat  mForm:lotVat0
+  Click Element                       xpath=//*[@id='${vat_selector}']/tbody/tr/td[1]//div[2]
+#  Press Key                           id=mForm:lotStepPercent0   \\49  # workaround to properly input "1"
+  ${step_selector}=  Set Variable If  ${NUMBER_OF_LOTS}==0  mForm:step  mForm:lotStep0
+  Sleep  10
+  Click Element  id=${step_selector}
+  Sleep  2
+  Input text  id=${step_selector}  ${step_rate}
+  Sleep  2
+  Input text                          xpath=//*[@id="mForm:dEA_input"]  ${enquiry_period_end_date}
+  Input text                          xpath=//*[@id="mForm:dSPr_input"]  ${tender_period_start_date}
+  Input text                          xpath=//*[@id="mForm:dEPr_input"]  ${tender_period_end_date}
+  Input text                          id=mForm:cCpvGrL_input      ${cpv_id_1}
+  Wait Until Element Is Visible       xpath=.//*[@id='mForm:cCpvGrL_panel']/table/tbody/tr/td[2]/span   90
+  Click Element                       xpath=.//*[@id='mForm:cCpvGrL_panel']/table/tbody/tr/td[2]/span
+  Input text                          id=mForm:lotItems0:lotItem_0:cCpv_input   ${cpv_id}
+  Wait Until Element Is Visible       xpath=//div[@id='mForm:lotItems0:lotItem_0:cCpv_panel']//td[1]/span   90
+  Click Element                       xpath=//div[@id='mForm:lotItems0:lotItem_0:cCpv_panel']//td[1]/span
+  Input text                          id=mForm:lotItems0:lotItem_0:cDkpp_input    ${dkpp_id}
+#  Wait Until Element Is Visible       xpath=//div[@id='mForm:lotItems0:lotItem_0:cDkpp_panel']//tr[1]/td[2]/span   90
+#  Click Element                       xpath=//div[@id='mForm:lotItems0:lotItem_0:cDkpp_panel']//tr[1]/td[2]/span
+  Sleep  2
+  Input text                          id=mForm:lotItems0:lotItem_0:subject    ${item_description}
+  Sleep  2
+  Input text                          id=mForm:lotItems0:lotItem_0:unit_input    ${code}
+  Wait Until Element Is Visible       xpath=//div[@id='mForm:lotItems0:lotItem_0:unit_panel']//tr/td[1]   90
+  Click Element                       xpath=//div[@id='mForm:lotItems0:lotItem_0:unit_panel']//tr/td[1]
+  Input text                          id=mForm:lotItems0:lotItem_0:amount   ${quantity}
+  Input Text                          xpath=//*[@id='mForm:lotItems0:lotItem_0:delDS_input']  ${delivery_start_date}
+  Input text                          xpath=//*[@id="mForm:lotItems0:lotItem_0:delDE_input"]  ${delivery_end_date}
+  Click Element                       xpath=//*[@id="mForm:lotItems0:lotItem_0:cReg"]/div[3]
+  Sleep  2
+  Click Element                       xpath=//ul[@id='mForm:lotItems0:lotItem_0:cReg_items']/li[text()='${item_delivery_region}']
+  Sleep  2
+  Input Text                          xpath=//*[@id="mForm:lotItems0:lotItem_0:cTer_input"]    ${item_locality}
+  Wait Until Element Is Visible       xpath=//*[@id='mForm:lotItems0:lotItem_0:cTer']//td[1]    60
+  Press Key                           //*[@id="mForm:lotItems0:lotItem_0:cTer_input"]    \\13
+  Input text                          id=mForm:lotItems0:lotItem_0:zc  ${item_delivery_postal_code}
+  Input text                          xpath=//*[@id="mForm:lotItems0:lotItem_0:delAdr"]  ${item_delivery_address_street_address}
+  Input text                          id=mForm:lotItems0:lotItem_0:delLoc1  ${latitude}
+  Input text                          id=mForm:lotItems0:lotItem_0:delLoc2  ${longitude}
+  #Execute Javascript    $('#mForm:lotItems0:delLoc1').val('${latitude}')
+  #Execute Javascript    $('#mForm:lotItems0:delLoc2').val('${longitude}')
+
+  Input text                          id=mForm:rName     ${name}
+  Input text                          id=mForm:rPhone    ${telephone}
+  Input text                          id=mForm:rMail     ${mail}
+  #  Input text                          id=mForm:data:stepPercent  1
+  #  Завантажити документ до тендеру  ${file_path}
+  Sleep  2
+  Run Keyword if   '${mode}' == 'multi'   Додати предмет   items
+  # Save
+  # Save
+  Click Element                       xpath=//*[@id="mForm:bSave"]
+  Wait Until Element Is Visible       xpath=//div[contains(@class, "ui-confirm-dialog") and @aria-hidden="false"]//span[text()='Так']    60
+  Click Element                       xpath=//div[contains(@class, "ui-confirm-dialog") and @aria-hidden="false"]//span[text()='Так']
+  #Add language
+  #Run Keyword If  '${procurement_type}' == 'aboveThresholdEU'  subkeywords.Додати мову закупівлі  ${title_en}  ${description_en}  ${name_en}  ${items}  ${lots}  ${features}
+  # Announce
+  Execute JavaScript                  window.scrollTo(0, 0)
+  Wait Until Page Contains Element    xpath=//span[text()="Оголосити"]
+  Wait Until Element Is Visible       xpath=//span[text()="Оголосити"]    60
+  Sleep  8
+  Click Element                       xpath=//span[text()="Оголосити"]
+  Sleep   8
+  # Confirm in message box
+  Click Element                       xpath=//div[contains(@class, "ui-confirm-dialog") and @aria-hidden="false"]//span[text()="Оголосити"]
+  Wait Until Page Contains Element    xpath=//span[contains(@class, "ui-button-text ui-c") and text()="Так"]
+  Wait Until Element Is Visible       xpath=//span[contains(@class, "ui-button-text ui-c") and text()="Так"]
+  Click Element                       xpath=//span[contains(@class, "ui-button-text ui-c") and text()="Так"]
+  # More smart wait for id is needed there.
+
+  ${bid_status}=  Get Text  xpath=//*[@id="mForm:status"]
+  :FOR    ${INDEX}    IN RANGE    1    25
+  \  Exit For Loop If  '${bid_status}' == 'Очікування пропозицій'
+  \  Sleep  3
+  \  ${bid_status}=  Get Text  xpath=//*[@id="mForm:status"]
+  \  Run Keyword If  '${bid_status}' == 'Оголошується'  Sleep  25
+  \  Run Keyword If  '${bid_status}' == 'Оголошується'  Reload Page
+
+  ${tender_UAid}=  Get Text           id=mForm:nBid
+  ${tender_UAid}=  Get Substring  ${tender_UAid}  19
+  ${Ids}       Convert To String  ${tender_UAid}
+  Run keyword if   '${mode}' == 'multi'   Set Multi Ids   ${tender_UAid}
+
   [return]  ${Ids}
 
-Додати предмет
-  [Arguments]  @{ARGUMENTS}
-  [Documentation]
-  ...      ${ARGUMENTS[0]} ==  item
-  ...      ${ARGUMENTS[1]} ==  ${INDEX}
-  ${description}=   Get From Dictionary   ${ARGUMENTS[0]}              description
-  ${cpv_id}=        Get From Dictionary   ${ARGUMENTS[0].classification}              id
-  ${dkpp_id}=       Get From Dictionary   ${ARGUMENTS[0].additionalClassifications[0]}   id
-  ${unit}=          Get From Dictionary   ${ARGUMENTS[0].unit}    name
-  ${quantity}=      Get From Dictionary   ${ARGUMENTS[0]}         quantity
-  ${quantity}=      Convert To String     ${quantity}
-  ${region}=        Get From Dictionary   ${ARGUMENTS[0].deliveryAddress}  region
-  ${locality}=      Get From Dictionary   ${ARGUMENTS[0].deliveryAddress}  locality
-  ${street}=        Get From Dictionary   ${ARGUMENTS[0].deliveryAddress}  streetAddress
-  ${code}=          Get From Dictionary   ${ARGUMENTS[0].deliveryAddress}  postalCode
-  ${code}=          Convert To String     ${code}
-  ${delivery_end}=  Get From Dictionary   ${ARGUMENTS[0].deliveryDate}  endDate
-  ${delivery_end}=  convert_datetime_for_delivery  ${delivery_end}
-
-  Sleep  2
-  Input text                         xpath=(//*[@data-type='item'])[last()]//input[contains(@id, '_op_description')]  ${description}
-  Input text                         xpath=(//*[@data-type='item'])[last()]//input[contains(@id, '_op_quantity')]  ${quantity}
-  Select From List By Label          xpath=(//*[@data-type='item'])[last()]//select[contains(@id, '_op_unit_id')]  ${unit}
-  
-#  Sleep  2
-  Click Element                      xpath=(//*[@data-type='item'])[last()]//button[contains(., 'Класифікація ДК 021:2015')]
-  Wait Until Element Is Visible      xpath=(//*[@data-type='item'])[last()]//h4[contains(., 'Класифікація ДК 021:2015')]
-  Sleep  1
-  Input text                         xpath=(//*[@data-type='item'])[last()]//*[@role='document'][contains(.//h4, 'Класифікація ДК 021:2015')]//input[@id='search-input']  ${cpv_id}
-  Press key                          xpath=(//*[@data-type='item'])[last()]//*[@role='document'][contains(.//h4, 'Класифікація ДК 021:2015')]//input[@id='search-input']  \\13
-  Wait Until Page Contains Element   xpath=(//*[@data-type='item'])[last()]//span[contains(span/b, '${cpv_id}')]  10
-  Click Element                      xpath=(//*[@data-type='item'])[last()]//span[span/b/text()='${cpv_id}']/span[@class='fancytree-checkbox']
-  Click Element                      xpath=(//*[@data-type='item'])[last()]//*[@role='document'][contains(.//h4, 'Класифікація ДК 021:2015')]//button[contains(@class, 'js-submit-btn')]
-  Sleep  1
-  
-  Click Element                      xpath=(//*[@data-type='item'])[last()]//button[contains(., 'Класифікація ДК 016:2010')]
-  Wait Until Element Is Visible      xpath=(//*[@data-type='item'])[last()]//h4[contains(., 'Класифікація ДК 016:2010')]
-  Sleep  1
-  Input text                         xpath=(//*[@data-type='item'])[last()]//*[@role='document'][contains(.//h4, 'Класифікація ДК 016:2010')]//input[@id='search-input']  ${dkpp_id}
-  Press key                          xpath=(//*[@data-type='item'])[last()]//*[@role='document'][contains(.//h4, 'Класифікація ДК 016:2010')]//input[@id='search-input']  \\13
-  Wait Until Page Contains Element   xpath=(//*[@data-type='item'])[last()]//span[contains(span/b, '${dkpp_id}')]  10
-  Click Element                      xpath=(//*[@data-type='item'])[last()]//span[span/b/text()='${dkpp_id}']/span[@class='fancytree-checkbox']
-  Click Element                      xpath=(//*[@data-type='item'])[last()]//*[@role='document'][contains(.//h4, 'Класифікація ДК 016:2010')]//button[contains(@class, 'js-submit-btn')]
-  Sleep  1
-  # Execute Javascript  $('[name*="op_classification_id"]').eq(${ARGUMENTS[1]}).attr('value', '6272')
-  # Execute Javascript  $('[name*="op_additional_classification_ids"]').eq(${ARGUMENTS[1]}).attr('value', '11911')
-  Select Checkbox                    xpath=(//*[@data-type='item'])[last()]//*[@type='checkbox'][contains(@id, '_shipping')]
- # Sleep 1
- # Wait For Element Is Visible        xpath=(//*[@data-type='item'])[last()]//select[contains(@id, '_op_delivery_address_region_id')]  10
-  Select From List By Label          xpath=(//*[@data-type='item'])[last()]//select[contains(@id, '_op_delivery_address_region_id')]  ${region}
-  Sleep  1
-  ${has_locality}=  Run Keyword And Return Status  Element Should Contain  xpath=(//*[@data-type='item'])[last()]//select[contains(@id, '_op_delivery_address_locality_id')]  ${locality}
-  Run Keyword If  ${has_locality}  Select From List By Label  xpath=(//*[@data-type='item'])[last()]//select[contains(@id, '_op_delivery_address_locality_id')]  ${locality}
-
-  Input Text                        xpath=(//*[@data-type='item'])[last()]//input[contains(@id, '_op_delivery_address_street_address')]  ${street}
-  Input Text                        xpath=(//*[@data-type='item'])[last()]//input[contains(@id, '_op_delivery_address_postal_code')]  ${code}
-  Input Text                        xpath=(//*[@data-type='item'])[last()]//input[contains(@id, '_op_delivery_date_end_date')]  ${delivery_end}
-
-
-Додати багато предметів
-  [Arguments]  @{ARGUMENTS}
-  [Documentation]
-  ...      ${ARGUMENTS[0]} ==  items
-  ${Items_length}=   Get Length   ${items}
-  : FOR    ${INDEX}    IN RANGE    1    ${Items_length}
-  \   Click Element   xpath=//*[contains(@class, 'js-items-add')]
-  \   Додати предмет   ${items[${INDEX}]}   ${INDEX}
-
-Клацнути і дочекатися
-  [Arguments]  ${click_locator}  ${wanted_locator}  ${timeout}
-  [Documentation]
-  ...      click_locator: Where to click
-  ...      wanted_locator: What are we waiting for
-  ...      timeout: Timeout
-  Click Element  ${click_locator}
-  Wait Until Page Contains Element  ${wanted_locator}  ${timeout}
-
-Шукати і знайти
-  Клацнути і дочекатися  xpath=//input[contains(./@class, 'btn-submit')]  xpath=(//*[@class='title-wrapper'])[1]  5
-
-Load And Check Text
-  [Arguments]  ${url}  ${wanted_text}
-  Go To  ${url}
-  Page Should Contain  ${wanted_text}
-
-Load And Wait Text
-  [Arguments]  ${url}  ${wanted_text}  ${retries}
-  Wait Until Keyword Succeeds  ${retries}x  200ms  Load And Check Text  ${url}  ${wanted_text}
 
 Пошук тендера по ідентифікатору
   [Arguments]  @{ARGUMENTS}
   [Documentation]
   ...      ${ARGUMENTS[0]} ==  username
-  ...      ${ARGUMENTS[1]} ==  ${TENDER_UAID}
-  Selenium2Library.Switch browser   ${ARGUMENTS[0]}
-  Load And Wait Text  ${BROKERS['upetem'].homepage}  Допорогові закупівлі України  4
-  #Go To  ${BROKERS['ubiz'].homepage}
-  #Wait Until Page Contains   Допорогові закупівлі України    20
-#  sleep  1
-  Wait Until Page Contains Element    id=TenderSearchForm_query    20
-#  sleep  3  
-  Input Text    id=TenderSearchForm_query    ${ARGUMENTS[1]}
-#  sleep  1
-  ${timeout_on_wait}=  Get Broker Property By Username  ${ARGUMENTS[0]}  timeout_on_wait
-  ${passed}=  Run Keyword And Return Status  Wait Until Keyword Succeeds  ${timeout_on_wait} s  0 s  Шукати і знайти
-  Run Keyword Unless  ${passed}  Fatal Error  Тендер не знайдено за ${timeout_on_wait} секунд
-  sleep  1
-  Wait Until Page Contains Element    xpath=(//*[@class='title-wrapper'])[1]    20
-  #sleep  1
-  Click Element    xpath=(//*[@class='title-wrapper'])[1]/a
-  Sleep  1
-  Wait Until Page Contains    ${ARGUMENTS[1]}   60
-  Save Tender ID
-  Click Element  xpath=//span[@class='expand']
-  Wait Until Element Is Visible  ${locator.items[0].classification.id}  10
-  #Sleep  1
+  ...      ${ARGUMENTS[1]} ==  tenderId
+  ...      ${ARGUMENTS[2]} ==  id
+  Switch browser   ${ARGUMENTS[0]}
+  ${current_location}=   Get Location
+  Wait Until Element Is Visible    xpath=//a[./text()="Закупівлі"]    60
+  Click Element                    xpath=//a[./text()="Закупівлі"]
+  Wait Until Element Is Visible    xpath=//div[@id='buttons']/button[1]    30
+  Click Element                    xpath=//div[@id='buttons']/button[1]
+  Sleep  2
+  Input Text                       xpath=//*[@id='search-by-number']/input    ${ARGUMENTS[1]}
+  Click Element                    id=mForm:search_button
+  Sleep  5
+  :FOR    ${INDEX}    IN RANGE    1    45
+  \  ${find}=  Run Keyword And Return Status  Page Should Contain Element  xpath=//a[text()='${ARGUMENTS[1]}']/ancestor::div[1]/span[2]/a
+  \  Exit For Loop If  '${find}' == 'True'
+  \  Sleep  20
+#  \  Clear Element Text    xpath=//*[@id='search-by-number']/input
+#  \  Sleep  3
+#  \  Input Text            xpath=//*[@id='search-by-number']/input  ${ARGUMENTS[1]}
+#  \  Sleep  5
+  \  Click Element         id=mForm:search_button
+  \  Sleep  25
+#  Click Element    xpath=//a[contains(text(), '${ARGUMENTS[1]}')]/ancestor::div[1]/span[2]/a
+  Click Element    xpath=//a[text()='${ARGUMENTS[1]}']/ancestor::div[1]/span[2]/a
+  Wait Until Page Contains    ${ARGUMENTS[1]}   10
+  Sleep  5
   Capture Page Screenshot
 
-Завантажити документ
-  [Arguments]  @{ARGUMENTS}
-  [Documentation]
-  ...      ${ARGUMENTS[0]} ==  username
-  ...      ${ARGUMENTS[1]} ==  ${filepath}
-  ...      ${ARGUMENTS[2]} ==  ${TENDER_UAID}
-  Selenium2Library.Switch Browser    ${ARGUMENTS[0]}
-  #ubiz.Пошук тендера по ідентифікатору  ${ARGUMENTS[0]}  ${ARGUMENTS[2]}
-  Open Tender
-  Wait Until Page Contains  Інформація про закупівлю  20
-  Click Element  xpath=//a[text()='Редагувати']
-  Sleep  1
-  Wait Until Page Contains  Редагування закупівлі  10
-  Click Element  xpath=//a[@data-url='/tender/getDocumentForm']
-  Wait Until Page Contains Element  xpath=(//div[label/@for='TenderForm_documents']//div[@class='js-item-parent-wrapper'])[last()]//input[@type='file']  10
-  Choose File  xpath=(//div[label/@for='TenderForm_documents']//div[@class='js-item-parent-wrapper'])[last()]//input[@type='file']  ${ARGUMENTS[1]}
-  Sleep  1
-  Click Element   xpath=//*[@type='submit']
-  Sleep  1
-  Wait Until Page Contains   Дані закупівлі успішно змінені.   10
-
-
-Подати скаргу
-  [Arguments]  @{ARGUMENTS}
-  [Documentation]
-  ...      ${ARGUMENTS[0]} ==  username
-  ...      ${ARGUMENTS[1]} ==  ${TENDER_UAID}
-  ...      ${ARGUMENTS[2]} ==  ${Complain}
-  Fail  Не реалізований функціонал
-
-порівняти скаргу
-  [Arguments]  @{ARGUMENTS}
-  [Documentation]
-  ...      ${ARGUMENTS[0]} ==  username
-  ...      ${ARGUMENTS[1]} ==  ${file_path}
-  ...      ${ARGUMENTS[2]} ==  ${TENDER_UAID}
-  Fail  Не реалізований функціонал
-
-Подати цінову пропозицію
-  [Arguments]  @{ARGUMENTS}
-  [Documentation]
-  ...      ${ARGUMENTS[0]} ==  username
-  ...      ${ARGUMENTS[1]} ==  ${TENDER_UAID}
-  ...      ${ARGUMENTS[2]} ==  ${test_bid_data}
-  ${bid}=                     Get From Dictionary   ${ARGUMENTS[2].data.value}         amount
-  upetem.Оновити сторінку з тендером   ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
-  Click Element               xpath=//div[@class='actions-wrapper']//a
-  Sleep  1
-  Wait Until Page Contains    Реєстрація пропозиції по закупівлі    10
-  Input text                  xpath=(//input[contains(@id, '_op_value_amount')])[1]  ${bid}
-  Click Element               xpath=//form[@id='tender-bid-form']//input[@type='submit']
-  Sleep  1
-  #ubiz.Оновити сторінку з тендером  ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
-  #Wait Until Page Contains    Пропозиція успішно додана.  10
-
-Змінити цінову пропозицію
-  [Arguments]  ${username}  ${tender_uaid}  ${amount_locator}  ${new_sum}
-  #ubiz.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
-  Open Tender
-  Page Should Contain Element  xpath=//div[@class='actions-wrapper']//a[contains(@class, 'btn-info')]
-  Click Element                xpath=//div[@class='actions-wrapper']//a[contains(@class, 'btn-info')]
-  Sleep  1
-  Wait Until Page Contains    Редагування пропозиції по закупівлі    10
-  Input text                  xpath=(//input[contains(@id, '_op_value_amount')])[1]  ${new_sum}
-  Click Element               xpath=//form[@id='tender-bid-form']//input[@type='submit']
-  Sleep  1
-  #ubiz.Оновити сторінку з тендером  ${provider}  ${tender_uaid}
-
-Завантажити документ в ставку
-  [Arguments]  ${provider}  ${filepath}  ${tender_uaid}
-  #ubiz.Пошук тендера по ідентифікатору  ${provider}  ${tender_uaid}
-  Open Tender
-  Page Should Contain Element  xpath=//div[@class='actions-wrapper']//a[contains(@class, 'btn-info')]
-  Click Element                xpath=//div[@class='actions-wrapper']//a[contains(@class, 'btn-info')]
-  Sleep  1
-  Wait Until Page Contains    Редагування пропозиції по закупівлі    10
-  Click Element               xpath=//a[contains(@class, 'js-items-add')]
-  Wait Until Page Contains Element  xpath=//input[@type='file']  10
-  Choose File                 xpath=//input[@type='file']  ${filepath}
-  Sleep  1
-  Click Element               xpath=//form[@id='tender-bid-form']//input[@type='submit']
-  Sleep  1
-  #ubiz.Оновити сторінку з тендером  ${provider}  ${tender_uaid}
-
-Змінити документ в ставці
-  [Arguments]  ${username}  ${filepath}  ${bidid}  ${docid}
-  ${tender_name}=  Get From Dictionary  ${USERS.users['${tender_owner}'].initial_data.data}  title
-  #ubiz.Пошук тендера по ідентифікатору  ${provider}  ${tender_name}
-  Open Tender
-  Page Should Contain Element  xpath=//div[@class='actions-wrapper']//a[contains(@class, 'btn-info')]
-  Click Element                xpath=//div[@class='actions-wrapper']//a[contains(@class, 'btn-info')]
-  Sleep  1
-  Wait Until Page Contains    Редагування пропозиції по закупівлі    10
-  Choose File                 xpath=//input[@type='file']  ${filepath}
-  Sleep  1
-  Click Element               xpath=//form[@id='tender-bid-form']//input[@type='submit']
-  Sleep  1
-  #ubiz.Оновити сторінку з тендером  ${provider}  ${tender_name}
-
-скасувати цінову пропозицію
-  [Arguments]  ${username}  ${tender_uaid}  ${bid_response}
-  #ubiz.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
-  Open Tender
-  Page Should Contain Element  xpath=//div[@class='actions-wrapper']//a[contains(@class, 'btn-danger')]
-  Click Element                xpath=//div[@class='actions-wrapper']//a[contains(@class, 'btn-danger')]
-  Sleep  1
-  Wait Until Page Contains     Пропозиція успішно видалена.  10
 
 Оновити сторінку з тендером
-  [Arguments]  @{ARGUMENTS}
-  [Documentation]
-  ...      ${ARGUMENTS[0]} =  username
-  ...      ${ARGUMENTS[1]} =  ${TENDER_UAID}
-  Selenium2Library.Switch Browser    ${ARGUMENTS[0]}
-  Sync Tender
-  Open Tender
-  #ubiz.Пошук тендера по ідентифікатору    ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
-  
-Задати питання
-  [Arguments]  ${username}  ${tender_uaid}  ${question}
-
-  ${title}=        Get From Dictionary  ${question.data}  title
-  ${description}=  Get From Dictionary  ${question.data}  description
-
+  [Arguments]  ${username}  ${tender_uaid}
   Selenium2Library.Switch Browser    ${username}
-  #ubiz.Пошук тендера по ідентифікатору   ${username}  ${tender_uaid}
-  Open Tender
-  #Wait date  ${USERS.users['${tender_owner}'].initial_data.data.enquiryPeriod.startDate}
-  Switch To Questions
-  Input text                         id=TenderQuestionForm_op_title               ${title}
-  Input text                         id=TenderQuestionForm_op_description           ${description}
-  Sleep  2
-  Click Element                      xpath=//*[@type='submit']
-  Sleep  1
-  #Click Element                      xpath=//*[@type='submit']
-  #Sleep  1
-  #Click Element                       xpath=//input[@value='Задати питання']
-  #Sleep  1
-  Wait Until Page Contains            Питання успішно додане.  10
+  upetem.Пошук тендера по ідентифікатору    ${username}   ${tender_uaid}
+  Reload Page
 
-Відповісти на питання
-  [Arguments]  @{ARGUMENTS}
-  [Documentation]
-  ...      ${ARGUMENTS[0]} = username
-  ...      ${ARGUMENTS[1]} = ${TENDER_UAID}
-  ...      ${ARGUMENTS[2]} = 0
-  ...      ${ARGUMENTS[3]} = answer_data
-
-  ${answer}=     Get From Dictionary  ${ARGUMENTS[3].data}  answer
-
-  Selenium2Library.Switch Browser    ${ARGUMENTS[0]}
-  #ubiz.Пошук тендера по ідентифікатору   ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
-  Open Tender
-  Switch To Questions
-  Input text                         id=TenderQuestionAnswerForm_op_answer               ${answer}
-  Click Element                      xpath=//*[@type='submit']
-  Sleep  1
-  Wait Until Page Contains           Відповідь успішно додана.  10
-  Capture Page Screenshot
-
-Внести зміни в тендер
-  [Arguments]  @{ARGUMENTS}
-  [Documentation]
-  ...      ${ARGUMENTS[0]} =  username
-  ...      ${ARGUMENTS[1]} =  ${TENDER_UAID}
-  ...      ${ARGUMENTS[2]} =  field_locator (description)
-  ...      ${ARGUMENTS[3]} =  text
-  Selenium2Library.Switch Browser    ${ARGUMENTS[0]}
-  #ubiz.Пошук тендера по ідентифікатору  ${ARGUMENTS[0]}  ${ARGUMENTS[1]}
-  Open Tender
-  Wait Until Page Contains  Інформація про закупівлю  20
-  Click Element  xpath=//a[text()='Редагувати']
-  Sleep  1
-  Wait Until Page Contains  Редагування закупівлі  10
-  Input text    id=TenderForm_op_description            ${ARGUMENTS[3]}
-  Click Element   xpath=//*[@type='submit']
-  Sleep  1
-  Wait Until Page Contains   Дані закупівлі успішно змінені.   10
-  Capture Page Screenshot
-
-додати предмети закупівлі
-  [Arguments]  @{ARGUMENTS}
-  [Documentation]
-  ...      ${ARGUMENTS[0]} =  username
-  ...      ${ARGUMENTS[1]} =  ${TENDER_UAID}
-  ...      ${ARGUMENTS[2]} =  3
-  ${period_interval}=  Get Broker Property By Username  ${ARGUMENTS[0]}  period_interval
-  ${ADDITIONAL_DATA}=  prepare_test_tender_data  ${period_interval}  multi
-  ${tender_data}=   Add_data_for_GUI_FrontEnds   ${ADDITIONAL_DATA}
-  ${items}=         Get From Dictionary   ${tender_data.data}               items
-  Selenium2Library.Switch Browser    ${ARGUMENTS[0]}
-  Run keyword if   '${TEST NAME}' == 'Можливість додати позицію закупівлі в тендер'   додати позицію
-  Run keyword if   '${TEST NAME}' != 'Можливість додати позицію закупівлі в тендер'   видалити позиції
-
-додати позицію
-  upetem.Пошук тендера по ідентифікатору   ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
-  Sleep  2
-  Click Element                     xpath=//a[@class='btn btn-primary ng-scope']
-  Sleep  2
-  : FOR    ${INDEX}    IN RANGE    1    ${ARGUMENTS[2]} +1
-  \   Click Element   xpath=.//*[@id='myform']/tender-form/div/button
-  \   Додати предмет   ${items[${INDEX}]}   ${INDEX}
-  Sleep  2
-  Click Element   xpath=//div[@class='form-actions']/button[./text()='Зберегти зміни']
-  Wait Until Page Contains    [ТЕСТУВАННЯ]   10
-
-видалити позиції
-  upetem.Пошук тендера по ідентифікатору   ${ARGUMENTS[0]}   ${ARGUMENTS[1]}
-  Click Element                     xpath=//a[@class='btn btn-primary ng-scope']
-  Sleep  2
-  : FOR    ${INDEX}    IN RANGE    1    ${ARGUMENTS[2]} +1
-  \   Click Element   xpath=(//button[@class='btn btn-danger ng-scope'])[last()]
-  \   Sleep  1
-  Sleep  2
-  Wait Until Page Contains Element   xpath=//div[@class='form-actions']/button[./text()='Зберегти зміни']   10
-  Click Element   xpath=//div[@class='form-actions']/button[./text()='Зберегти зміни']
-  Wait Until Page Contains    [ТЕСТУВАННЯ]   10
 
 Отримати інформацію із тендера
+  [Arguments]  ${username}  ${tender_uaid}  ${fieldname}
+  Selenium2Library.Switch browser   ${username}
+  Run Keyword And Return  view.Отримати інформацію про ${fieldname}
+
+
+Внести зміни в тендер
+  [Arguments]  ${username}  ${tender_uaid}  ${fieldname}  ${fieldvalue}
+  Selenium2Library.Switch Browser    ${username}
+  upetem.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
+  Run Keyword If  '${fieldname}' == 'tenderPeriod.endDate'  subkeywords.Змінити дату  ${fieldvalue}
+  Run Keyword If  '${fieldname}' == 'description'  subkeywords.Змінити опис  ${fieldvalue}
+  Sleep  2
+  Click Element              xpath=//*[@id="mForm:bSave"]
+  Sleep  5
+  Capture Page Screenshot
+
+
+Завантажити документ
+  [Arguments]   ${username}  ${file}  ${tender_uaid}
+  Log  ${username}
+  Log  ${file}
+  Log  ${tender_uaid}
+  upetem.Пошук тендера по ідентифікатору  ${username}  ${tender_uaid}
+  Choose File       xpath=//*[@id='mForm:docFile_input']    ${file}
+  Wait Until Element Is Visible    xpath=//*[text()='Картка документу']    30
+  Click Element                    xpath=//*[@id="mForm:docCard:dcType_label"]
+  Wait Until Element Is Visible    xpath=//*[@id="mForm:docCard:dcType_panel"]    30
+  Click Element                    xpath=//*[@id="mForm:docCard:dcType_panel"]/div/ul/li[2]
+  Sleep  2
+  Click Element                    xpath=//*[@id="mForm:docCard:docCard"]/table/tfoot/tr/td/button[1]
+  Sleep  20
+  Input text                       id=mForm:docAdjust     Test text
+  Sleep  5
+  Click Element                    xpath=//*[@id="mForm:bSave"]
+  Wait Until Element Is Visible    xpath=(//*[@id="primefacesmessagedlg"]/div/a)[1]    120
+  Click Element                    xpath=(//*[@id="primefacesmessagedlg"]/div/a)[1]
+  Sleep  220
+
+
+Set Multi Ids
+  [Arguments]  @{ARGUMENTS}
+  [Documentation]
+  ...      ${ARGUMENTS[0]} ==  ${tender_UAid}
+  ${id}=           Get Text           id=mForm:nBid
+  ${Ids}   Create List    ${tender_UAid}   ${id}
+
+
+Отримати інформацію із документа
+  [Arguments]  ${username}  ${tender_uaid}  ${doc_id}  ${field}
+  #Sleep  250
+  Switch browser   ${username}
+  upetem.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
+  ${field_xpath}=  get_xpath.get_document_xpath  ${field}  ${doc_id}
+  Run Keyword If    '${TEST_NAME}' == 'Відображення заголовку документації до тендера'    Wait Until Keyword Succeeds  300 s  10 s    subkeywords.Wait For Document    ${field_xpath}
+  ${value}=    Get Text    ${field_xpath}
+  [return]  ${value}
+
+
+Отримати документ
+  [Arguments]  ${username}  ${tender_uaid}  ${doc_id}
+  Switch Browser    ${username}
+  upetem.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
+  ${url_doc}=    Get Element Attribute    xpath=//*[contains(text(), '${doc_id}')]@href
+  ${file_name}=    Get Text    xpath=//*[contains(text(), '${doc_id}')]
+  ${file_name}=    Convert To String    ${file_name}
+  upetem_service.download_file    ${url_doc}    ${file_name}    ${OUTPUT_DIR}
+  [return]  ${file_name}
+
+
+#                                    ITEM OPERATIONS                                       #
+
+Додати предмет закупівлі
+  [Arguments]  ${username}  ${tender_uaid}  ${item}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Отримати інформацію із предмету
+  [Arguments]  ${username}  ${tender_uaid}  ${item_id}  ${field_name}
+  Switch browser    ${username}
+  #Run Keyword If    '${TEST_NAME}' == 'Відображення опису номенклатури у новому лоті'    Sleep  45
+  Run Keyword If    '${TEST_NAME}' == 'Відображення опису номенклатури у новому лоті'    subkeywords.Switch new lot    ${username}  ${tender_uaid}
+  Run Keyword If    '${TEST_NAME}' == 'Відображення опису нової номенклатури'    upetem.Пошук тендера по ідентифікатору    ${username}  ${tender_uaid}
+  Run Keyword If    '${TEST_NAME}' == 'Відображення опису нової номенклатури'    Wait Until Keyword Succeeds  300 s  30s  subkeywords.Wait For NewItem    ${item_id}
+  #${status}=    Run Keyword And Return Status    Page Should Contain Element    xpath=//*[contains(text(), '${item_id}')]
+  #Run Keyword if    '${status}' == 'False'    Click Element    xpath=//*[@id='lotTabButton_2']
+  Sleep  5
+  ${value}=    subkeywords.Отримати дані з поля item    ${field_name}  ${item_id}
+  ${value}=    subkeywords.Адаптувати дані з поля item    ${field_name}  ${value}
+  [return]    ${value}
+
+
+Видалити предмет закупівлі
   [Arguments]  @{ARGUMENTS}
   [Documentation]
   ...      ${ARGUMENTS[0]} ==  username
-  ...      ${ARGUMENTS[1]} ==  fieldname
-  Switch browser   ${ARGUMENTS[0]}
-  Run Keyword If  'question' in '${ARGUMENTS[1]}'  Switch To Questions
-  Run Keyword And Return If  'status' in '${ARGUMENTS[1]}'  Отримати інформацію про ${ARGUMENTS[1]}  ${ARGUMENTS[0]}  ${TENDER.TENDER_UAID}
-  Run Keyword And Return  Отримати інформацію про ${ARGUMENTS[1]}
+  ...      ${ARGUMENTS[1]} ==  tender_uaid
+  ...      ${ARGUMENTS[2]} ==  item_id
+  ...      ${ARGUMENTS[3]} ==  lot_id
 
-Отримати текст із поля і показати на сторінці
-  [Arguments]   ${fieldname}
-  #sleep  3
-#  відмітити на сторінці поле з тендера   ${fieldname}   ${locator.${fieldname}}
-  Wait Until Page Contains Element    ${locator.${fieldname}}    22
-  #Sleep  1
-  ${return_value}=   Get Text  ${locator.${fieldname}}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${ARGUMENTS[0]}
+
+
+#                                    LOT OPERATIONS                                         #
+
+Створити лот
+  [Arguments]  ${username}  ${tender_uaid}  ${lot}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Створити лот із предметом закупівлі
+  [Arguments]  ${username}  ${tender_uaid}  ${lot}  ${item}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Отримати інформацію із лоту
+  [Arguments]  ${username}  ${tender_uaid}  ${lot_id}  ${field_name}
+  Switch browser    ${username}
+  ${status}=    Run Keyword And Return Status    Page Should Contain Element    xpath=//*[contains(@value, '${lot_id}')]
+  Run Keyword if    '${status}' == 'False'    Click Element    xpath=//button[contains(text(), '${lot_id}')]
+  Sleep  2
+  ${value}=    subkeywords.Отримати дані з поля lot    ${field_name}  ${lot_id}  ${mode}
+  ${value}=    subkeywords.Адаптувати дані з поля lot    ${field_name}  ${value}
+  [return]    ${value}
+
+
+Змінити лот
+  [Arguments]  ${username}  ${tender_uaid}  ${lot_id}  ${fieldname}  ${fieldvalue}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Додати предмет закупівлі в лот
+  [Arguments]  ${username}  ${tender_uaid}  ${lot_id}  ${item}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Завантажити документ в лот
+  [Arguments]  ${username}  ${filepath}  ${tender_uaid}  ${lot_id}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Видалити лот
+  [Arguments]  ${username}  ${tender_uaid}  ${lot_id}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Скасувати лот
+  [Arguments]  ${username}  ${tender_uaid}  ${lot_id}  ${cancellation_reason}  ${document}  ${description}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Отримати інформацію з документа до лоту
+  [Arguments]  ${username}  ${tender_uaid}  ${lot_id}  ${doc_id}  ${field}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Отримати документ до лоту
+  [Arguments]  ${username}  ${tender_uaid}  ${lot_id}  ${doc_id}
+  ${file_name}=    upetem.Отримати документ    ${username}  ${tender_uaid}  ${doc_id}
+  [return]  ${file_name}
+
+
+#                                    FEATURES OPERATIONS                                    #
+
+Додати неціновий показник на тендер
+  [Arguments]  ${username}  ${tender_uaid}  ${feature}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Додати неціновий показник на предмет
+  [Arguments]  ${username}  ${tender_uaid}  ${feature}  ${item_id}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Додати неціновий показник на лот
+  [Arguments]  ${username}  ${tender_uaid}  ${feature}  ${lot_id}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Отримати інформацію із нецінового показника
+  [Arguments]  ${username}  ${tender_uaid}  ${feature_id}  ${field_name}
+  Switch browser    ${username}
+  Run Keyword If    '${TEST_NAME}' == 'Відображення заголовку нецінового показника на предмет'    upetem.Пошук тендера по ідентифікатору  ${username}  ${tender_uaid}
+  Run Keyword If    '${TEST_NAME}' == 'Відображення заголовку нецінового показника на тендер'    upetem.Пошук тендера по ідентифікатору  ${username}  ${tender_uaid}
+  Run Keyword If    '${TEST_NAME}' == 'Відображення заголовку нецінового показника на лот'    upetem.Пошук тендера по ідентифікатору  ${username}  ${tender_uaid}
+  Run Keyword If    '${TEST_NAME}' == 'Відображення заголовку нецінового показника на предмет'    Wait Until Keyword Succeeds  300 s  10 s  subkeywords.Wait For NewFeature  ${feature_id}
+  Run Keyword If    '${TEST_NAME}' == 'Відображення заголовку нецінового показника на тендер'    Wait Until Keyword Succeeds  300 s  10 s  subkeywords.Wait For NewFeature  ${feature_id}
+  Run Keyword If    '${TEST_NAME}' == 'Відображення заголовку нецінового показника на лот'    Wait Until Keyword Succeeds  300 s  10 s  subkeywords.Wait For NewFeature  ${feature_id}
+  Sleep  3
+  ${value}=    subkeywords.Отримати дані з поля feature    ${field_name}  ${feature_id}
+  ${value}=  Run Keyword If  '${field_name}' == 'featureOf'    upetem_service.convert_data_feature  ${value}
+  ...        ELSE    Set Variable    ${value}
+  [return]  ${value}
+
+
+Видалити неціновий показник
+  [Arguments]  @{ARGUMENTS}
+  [Documentation]
+  ...      ${ARGUMENTS[0]} ==  username
+  ...      ${ARGUMENTS[1]} ==  tender_uaid
+  ...      ${ARGUMENTS[2]} ==  feature_id
+
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${ARGUMENTS[0]}
+
+
+#                                    QUESTION                                               #
+
+Задати запитання на тендер
+  [Arguments]  ${username}  ${tender_uaid}  ${question}
+
+  ${title}=         Get From Dictionary   ${question.data}   title
+  ${description}=   Get From Dictionary   ${question.data}   description
+
+  Selenium2Library.Switch Browser    ${username}
+  Sleep  5
+  upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
+  Wait Until Element Is Visible       xpath=//span[./text()='Обговорення']    30
+  Click Element                       xpath=//span[./text()='Обговорення']
+  Input Text                          xpath=//*[@id="mForm:messT"]  ${title}
+  Input Text                          xpath=//*[@id="mForm:messQ"]  ${description}
+  Sleep  5
+  Click Element                       xpath=//*[@id="mForm:btnQ"]
+  Sleep  30
+
+Задати запитання на предмет
+  [Arguments]  ${username}  ${tender_uaid}  ${item_id}  ${question}
+
+  ${title}=         Get From Dictionary   ${question.data}   title
+  ${description}=   Get From Dictionary   ${question.data}   description
+
+  Selenium2Library.Switch Browser    ${username}
+  Sleep  5
+  upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
+  Wait Until Element Is Visible       xpath=//span[./text()='Обговорення']    30
+  Click Element                       xpath=//span[./text()='Обговорення']
+  Wait Until Element Is Visible       xpath=//*[@id='mForm:questTo_label']    30
+  Click Element                       xpath=//*[@id='mForm:questTo_label']
+  Sleep  2
+  Click Element                       xpath=(//*[contains(text(), 'Предмет закупівлі')])[2]
+  Input Text                          xpath=//*[@id='mForm:messT']    ${title}
+  Input Text                          xpath=//*[@id='mForm:messQ']    ${description}
+  Sleep  5
+  Click Element                       xpath=//*[@id='mForm:btnQ']
+  Sleep  30
+
+
+Задати запитання на лот
+  [Arguments]  ${username}  ${tender_uaid}  ${lot_id}  ${question}
+
+  ${title}=         Get From Dictionary   ${question.data}   title
+  ${description}=   Get From Dictionary   ${question.data}   description
+
+  Selenium2Library.Switch Browser    ${username}
+  Sleep  5
+  upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
+  Wait Until Element Is Visible        xpath=//span[./text()='Обговорення']   30
+  Click Element                        xpath=//span[./text()='Обговорення']
+  Wait Until Element Is Visible       xpath=//*[@id='mForm:questTo_label']    30
+  Click Element                       xpath=//*[@id='mForm:questTo_label']
+  Sleep  2
+  Click Element                       xpath=(//*[@id='mForm:questTo_panel']//*[contains(text(), '${lot_id}')])[1]
+  Input Text                          xpath=//*[@id='mForm:messT']    ${title}
+  Input Text                          xpath=//*[@id='mForm:messQ']    ${description}
+  Sleep  5
+  Click Element                       xpath=//*[@id='mForm:btnQ']
+  Sleep  30
+
+
+Отримати інформацію із запитання
+  [Arguments]  ${username}  ${tender_uaid}  ${question_id}  ${field_name}
+  Selenium2Library.Switch browser   ${username}
+  upetem.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
+  Click Element      xpath=//span[text()='Обговорення']
+  ${field_xpath}=    get_xpath.get_question_xpath    ${field_name}    ${question_id}
+  Wait Until Keyword Succeeds    300 s    10 s    subkeywords.Wait For Question    ${field_xpath}
+  ${value}=    Get Text    xpath=${field_xpath}
+  [return]  ${value}
+
+Відповісти на запитання
+  [Arguments]  ${username}  ${tender_uaid}  ${answer_data}  ${question_id}
+  ${answer}=     Get From Dictionary    ${answer_data.data}    answer
+  Selenium2Library.Switch Browser    ${username}
+  Sleep  5
+  upetem.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
+  Wait Until Element Is Visible    xpath=//*[@id="mForm:status"]   60
+  ${tender_status}=    Get Text    xpath=//*[@id="mForm:status"]
+  Run Keyword If  '${tender_status}' != 'Період уточнень'    Fail    "Період уточнень закінчився"
+  Click Element                      xpath=//span[./text()='Обговорення']
+  Sleep  3
+  Click Element                      xpath=//span[contains(text(), '${question_id}')]/ancestor::div[@id='mForm:data_content']//button
+  Input Text    xpath=//*[@id="mForm:messT"]    "Test answer"
+  Input Text    xpath=//*[@id="mForm:messQ"]    ${answer}
+  Sleep  2
+  Click Element                      xpath=//*[@id="mForm:btnR"]
+  Sleep  30
+
+#                                CLAIMS                                 #
+
+Створити чернетку вимоги про виправлення умов закупівлі
+  [Arguments]  ${username}  ${tender_uaid}  ${claim}
+  upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
+  #Wait Until Element Is Visible       xpath=//span[text()='Вимоги та скарги']    30
+  #Click Element    xpath=//span[text()='Вимоги та скарги']
+  Run Keyword If    '${mode}' != 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та скарги']
+  Run Keyword If    '${mode}' == 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та звернення']
+  Sleep  2
+  Click Element    xpath=//span[text()='Нова вимога']
+  Wait Until Element Is Visible    //span[text()='Обрати']    30
+  Click Element    xpath=//span[text()='Обрати']
+  Sleep  2
+  Input Text    xpath=//*[@id='mForm:data:title']    ${claim.data.title}
+  Sleep  2
+  Input Text    xpath=//*[@id='mForm:data:description']    ${claim.data.description}
+  Sleep  2
+  Click Element    xpath=//span[text()='Зареєструвати']
+  Sleep  30
+
+
+Створити чернетку про виправлення умов лоту
+  [Arguments]  ${username}  ${tender_uaid}  ${claim}  ${lot_id}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Створити чернетку вимоги про виправлення визначення переможця
+  [Arguments]  ${username}  ${tender_uaid}  ${claim}  ${award_index}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Створити вимогу про виправлення умов закупівлі
+  [Arguments]  ${username}  ${tender_uaid}  ${claim}  ${document}=${None}
+  upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
+  Run Keyword If    '${mode}' != 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та скарги']
+  Run Keyword If    '${mode}' == 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та звернення']
+  #Wait Until Element Is Visible       xpath=//span[text()='Вимоги та скарги']    30
+  #Click Element    xpath=//span[text()='Вимоги та скарги']
+  Sleep  2
+  Click Element    xpath=//span[text()='Нова вимога']
+  Sleep  5
+  #Wait Until Element Is Visible    xpath=//span[text()='Обрати']    30
+  Run Keyword If    '${TEST_NAME}' != 'Можливість створити і подати вимогу про виправлення умов лоту'    Click Element    xpath=//span[text()='Обрати']
+  Sleep  2
+  Input Text    xpath=//*[@id='mForm:data:title']    ${claim.data.title}
+  Sleep  2
+  Input Text    xpath=//*[@id='mForm:data:description']    ${claim.data.description}
+  Sleep  2
+  Run Keyword If    '${document}' != '${None}'    Choose File    xpath=//*[text()='Завантажити документ']//ancestor::div[1]//input    ${document}
+
+  Click Element    xpath=//span[text()='Зареєструвати']
+  Sleep  30
+  ${type}=  Set Variable If    'закупівлі' in '${TEST_NAME}'    tender
+  ...                          'лоту' in '${TEST_NAME}'    lot
+  ${complaintID}=    upetem_service.convert_complaintID    ${tender_uaid}    ${type}
+  Sleep  90
+  [return]  ${complaintID}
+
+
+Створити вимогу про виправлення умов лоту
+  [Arguments]  ${username}  ${tender_uaid}  ${claim}  ${lot_id}  ${document}=${None}
+  upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
+  Run Keyword If    '${mode}' != 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та скарги']
+  Run Keyword If    '${mode}' == 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та звернення']
+  #Wait Until Element Is Visible       xpath=//span[text()='Вимоги та скарги']    30
+  #Click Element    xpath=//span[text()='Вимоги та скарги']
+  Sleep  2
+  Click Element    xpath=//span[text()='Нова вимога']
+  Sleep  5
+  Input Text    xpath=//*[@id='mForm:data:title']    ${claim.data.title}
+  Sleep  2
+  Input Text    xpath=//*[@id='mForm:data:description']    ${claim.data.description}
+  Sleep  2
+  Run Keyword If    '${document}' != '${None}'    Choose File    xpath=//*[text()='Завантажити документ']//ancestor::div[1]//input    ${document}
+
+  Click Element    xpath=//span[text()='Зареєструвати']
+  Sleep  30
+  ${type}=  Set Variable If    'закупівлі' in '${TEST_NAME}'    tender
+  ...                          'лоту' in '${TEST_NAME}'    lot
+  ${complaintID}=    upetem_service.convert_complaintID    ${tender_uaid}    ${type}
+  Sleep  90
+  [return]  ${complaintID}
+
+
+Створити вимогу про виправлення визначення переможця
+  [Arguments]  @{ARGUMENTS}
+  [Documentation]
+  ...      ${ARGUMENTS[0]} ==  username
+  ...      ${ARGUMENTS[1]} ==  tender_uaid
+  ...      ${ARGUMENTS[2]} ==  claim
+  ...      ${ARGUMENTS[3]} ==  award_index
+  ...      ${ARGUMENTS[4]} ==  document
+
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${ARGUMENTS[0]}
+
+
+Завантажити документацію до вимоги
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${document}
+  upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
+  Click Element    xpath=//span[text()='Вимоги та скарги']
+  Wait Until Element Is Visible    xpath=//*[text()='${complaintID}']    30
+  Click Element    //*[text()='${complaintID}']
+
+
+Завантажити документацію до вимоги про виправлення визначення переможця
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${award_index}  ${document}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Подати вимогу
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${confirmation_data}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Подати вимогу про виправлення визначення переможця
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${award_index}  ${confirmation_data}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Відповісти на вимогу про виправлення умов закупівлі
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${answer_data}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Відповісти на вимогу про виправлення умов лоту
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${answer_data}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Відповісти на вимогу про виправлення визначення переможця
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${answer_data}  ${award_index}
+  Fail    "Драйвер не реалізовано"
+  Switch browser    ${username}
+
+
+Підтвердити вирішення вимоги про виправлення умов закупівлі
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${confirmation_data}
+  upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
+  Run Keyword If    '${mode}' != 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та скарги']
+  Run Keyword If    '${mode}' == 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та звернення']
+  #Click Element    xpath=//span[text()='Вимоги та скарги']
+  Sleep  2
+  Click Element    xpath=(//*[@id='mForm:data_data']/tr/td[1]/a)[1]
+  Sleep  2
+  Click Element    xpath=//*[text()='Погодитись з відповіддю']
+  Sleep  25
+
+
+Підтвердити вирішення вимоги про виправлення умов лоту
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${confirmation_data}
+  upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
+  Run Keyword If    '${mode}' != 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та скарги']
+  Run Keyword If    '${mode}' == 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та звернення']
+  #Click Element    xpath=//span[text()='Вимоги та скарги']
+  Sleep  2
+  Click Element    xpath=(//*[@id='mForm:data_data']/tr/td[1]/a)[1]
+  Sleep  2
+  Click Element    xpath=//*[text()='Погодитись з відповіддю']
+  Sleep  25
+
+
+Підтвердження вирішення вимоги про виправлення визначення переможця
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${confirmation_data}  ${award_index}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Скасувати вимогу про виправлення умов закупівлі
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${cancellation_data}
+  upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
+  Click Element    xpath=//span[text()='Вимоги та скарги']
+  Wait Until Element Is Visible    xpath=//*[text()='${complaintID}']    30
+  Click Element    //*[text()='${complaintID}']
+  Input Text    xpath=//*[@id='mForm:data:cancellationReason']    ${cancellation_data.data.cancellationReason}
+  Click Element    xpath=//*[text()='Відмінити вимогу/скаргу']
+
+
+Скасувати вимогу про виправлення умов лоту
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${cancellation_data}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Скасувати вимогу про виправлення визначення переможця
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${cancellation_data}  ${award_index}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Перетворити вимогу про виправлення умов закупівлі в скаргу
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${escalating_data}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Перетворити вимогу про виправлення умов лоту в скаргу
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${escalating_data}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Перетворити вимогу про виправлення визначення переможця в скаргу
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${escalating_data}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Отримати інформацію із скарги
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${field_name}  ${award_index}=${None}
+  Selenium2Library.Switch browser   ${username}
+  upetem.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
+  Run Keyword If    '${mode}' != 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та скарги']
+  Run Keyword If    '${mode}' == 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та звернення']
+  #Click Element    xpath=//*[text()='Вимоги та скарги']
+  #Wait Until Element Is Visible    xpath=//*[@id='mForm:data_data']/tr/td[1]/a    30
+  Run Keyword If    "${TEST_NAME}" == "Відображення опису вимоги"    Wait Until Keyword Succeeds  300 s  10 s  subkeywords.Wait For ClaimTender
+  Run Keyword If    "${TEST_NAME}" == "Відображення опису вимоги про виправлення умов закупівлі"    Wait Until Keyword Succeeds  300 s  10 s  subkeywords.Wait For ClaimTender
+  Run Keyword If    "${TEST_NAME}" == "Відображення опису вимоги про виправлення умов лоту"    Wait Until Keyword Succeeds  300 s  10 s  subkeywords.Wait For ClaimLot
+  Click Element    xpath=(//*[@id='mForm:data_data']/tr/td[1]/a)[1]
+  Sleep  3
+  Run Keyword If    "${TEST_NAME}" == "Можливість відповісти на вимогу про виправлення умов закупівлі"    Wait Until Keyword Succeeds  420 s  15 s  subkeywords.Wait For Answered
+  Run Keyword If    "${TEST_NAME}" == "Можливість відповісти на вимогу про виправлення умов лоту"    Wait Until Keyword Succeeds  420 s  15 s  subkeywords.Wait For Answered
+  Run Keyword If    "${TEST_NAME}" == "Відображення статусу 'answered' вимоги"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Answered
+  Run Keyword If    "${TEST_NAME}" == "Відображення статусу 'answered' вимоги про виправлення умов закупівлі"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Answered
+  Run Keyword If    "${TEST_NAME}" == "Відображення статусу 'answered' вимоги про виправлення умов лоту"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Answered
+  Run Keyword If    "${TEST_NAME}" == "Відображення задоволення вимоги"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Satisfied
+  Run Keyword If    "${TEST_NAME}" == "Відображення незадоволення вимоги"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Satisfied
+  Run Keyword If    "${TEST_NAME}" == "Відображення статусу 'resolved' вимоги про виправлення умов закупівлі"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Satisfied
+  Run Keyword If    "${TEST_NAME}" == "Відображення статусу 'resolved' вимоги про виправлення умов лоту"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Satisfied
+  Run Keyword If    "Відображення статусу 'cancelled'" in "${TEST_NAME}"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Cancelled
+  ${field_xpath}=    get_xpath.get_claims_xpath    ${field_name}
+  ${type_field}=    upetem_service.get_type_field    ${field_name}
+  ${value}=  Run Keyword If    '${type_field}' == 'value'    Get Value    ${field_xpath}
+  ...     ELSE IF             '${type_field}' == 'text'    Get Text    ${field_xpath}
+  ${return_value}=  Run Keyword If    '${field_name}' == 'status'    upetem_service.get_claim_status    ${value}    "${TEST_NAME}"
+  ...    ELSE IF                      '${field_name}' == 'resolutionType'    upetem_service.get_resolution_type    ${value}
+  ...    ELSE IF                      '${field_name}' == 'satisfied'    upetem_service.convert_satisfied    ${value}
+  ...    ELSE IF                      '${field_name}' == 'complaintID'    Set Variable    ${complaintID}
+  ...    ELSE    Set Variable    ${value}
   [return]  ${return_value}
 
-Отримати інформацію про title
-  ${return_value}=   get_text_excluding_children  ${locator.title}
-  ${return_value}=   Strip String  ${return_value}
+
+Отримати інформацію із документа до скарги
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${doc_id}  ${field_name}  ${award_id}=${None}
+  upetem.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
+  #Click Element    xpath=//*[text()='Вимоги та скарги']
+  Run Keyword If    '${mode}' != 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та скарги']
+  Run Keyword If    '${mode}' == 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та звернення']
+  Wait Until Element Is Visible    xpath=//*[@id='mForm:data_data']/tr/td[1]/a    30
+  Click Element    xpath=(//*[@id='mForm:data_data']/tr/td[1]/a)[1]
+  Sleep  3
+  ${value}=    Get Text    xpath=//*[contains(text(), '${doc_id}')]
+  [return]  ${value}
+
+
+Отримати документ до скарги
+  [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${doc_id}  ${award_id}=${None}
+  upetem.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
+  #Click Element    xpath=//*[text()='Вимоги та скарги']
+  Run Keyword If    '${mode}' != 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та скарги']
+  Run Keyword If    '${mode}' == 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та звернення']
+  Wait Until Element Is Visible    xpath=//*[@id='mForm:data_data']/tr/td[1]/a    30
+  Click Element    xpath=(//*[@id='mForm:data_data']/tr/td[1]/a)[1]
+  Sleep  3
+  ${url_doc}=    Get Element Attribute    xpath=//*[contains(text(), '${doc_id}')]@href
+  ${file_name}=    Get Text    xpath=//*[contains(text(), '${doc_id}')]
+  ${file_name}=    Convert To String    ${file_name}
+  upetem_service.download_file    ${url_doc}    ${file_name}    ${OUTPUT_DIR}
+  [return]  ${file_name}
+
+#                               BID OPERATIONS                          #
+
+Подати цінову пропозицію
+  [Arguments]  ${username}  ${tender_uaid}  ${bid}  ${lots_ids}=${None}  ${features_ids}=${None}
+  Switch browser  ${username}
+  upetem.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
+  ${tender_status}=  Get Text  xpath=//*[@id="mForm:status"]
+  Run Keyword If  '${tender_status}' == 'Період уточнень'  Fail  "Неможливо подати цінову пропозицію в період уточнень"
+  Click Element    xpath=//span[text()='Подати пропозицію']
+
+  Run Keyword If    '${mode}' == 'belowThreshold'    subkeywords.Подати цінову пропозицію для below    ${bid}
+  Run Keyword If    '${mode}' == 'openua'    subkeywords.Подати цінову пропозицію для open    ${bid}    ${lots_ids}    ${features_ids}
+  Run Keyword If    '${mode}' == 'openeu'    subkeywords.Подати цінову пропозицію для open    ${bid}    ${lots_ids}    ${features_ids}
+
+  Input Text  xpath=//*[@id="mForm:data:rName"]    Тестовий закупівельник
+  Input Text  xpath=//*[@id="mForm:data:rPhone"]    ${telephone}
+  Input Text  xpath=//*[@id="mForm:data:rMail"]    ${mail}
+
+  Click Element  xpath=//*[text()='Зберегти']
+  Sleep  3
+  Wait Until Element Is Visible    xpath=//*[@id='mForm:proposalSaveInfo']/div[3]/button    60
+  Click Element  xpath=//*[@id='mForm:proposalSaveInfo']/div[3]/button/span[2]
+  Sleep  2
+  Wait Until Element Is Visible    xpath=//*[text()='Зареєструвати пропозицію']    60
+  Click Element  xpath=//*[text()='Зареєструвати пропозицію']
+  Wait Until Element Is Visible    xpath=//*[@id='mForm:cdPay']    60
+  Click Element    xpath=//*[@id='mForm:cdPay']/div[2]/table//tr[6]/td//tr[2]/td/div
+#  Sleep  2
+#  Click Element    xpath=(//li[contains(text(), "${USERS.users['${username}'].login}")])[2]
+  Sleep  2
+  Click Element  xpath=(//*[text()='Зареєструвати пропозицію'])[2]
+  Wait Until Element Is Visible    //*[@id='mForm:data']/div[1]/table/tbody/tr[5]/td[2]    90
+  ${bid_status}=    Get Text    xpath=//*[@id='mForm:data']/div[1]/table/tbody/tr[5]/td[2]
+  :FOR    ${INDEX}    IN RANGE    1    25
+  \  Exit For Loop If  '${bid_status}' == 'Зареєстрована'
+  \  Sleep  3
+  \  ${bid_status}=  Get Text  xpath=//*[@id='mForm:data']/div[1]/table/tbody/tr[5]/td[2]
+  \  Run Keyword If  '${bid_status}' == 'Реєструється'  Sleep  25
+  \  Run Keyword If  '${bid_status}' == 'Реєструється'  Reload Page
+  Sleep  30
+
+
+Змінити цінову пропозицію
+  [Arguments]  ${username}  ${tender_uaid}  ${fieldname}  ${fieldvalue}
+  upetem.Пошук цінової пропозиції  ${username}  ${tender_uaid}
+  Run Keyword If    '${mode}' == 'belowThreshold'    subkeywords.Змінити цінову пропозицію below    ${fieldvalue}
+  ...    ELSE IF    '${mode}' != 'belowThreshold'    subkeywords.Змінити цінову пропозицію open    ${fieldname}    ${fieldvalue}
+  
+
+Скасувати цінову пропозицію
+  [Arguments]  ${username}  ${tender_uaid}
+  upetem.Пошук цінової пропозиції  ${username}  ${tender_uaid}
+  Click Element    xpath=//*[@id='mForm:proposalDeleteBtn']
+  Click Element    xpath=//*[text='Видалити']
+  Sleep  5
+
+Завантажити документ в ставку
+  [Arguments]  ${username}  ${path}  ${tender_uaid}  ${doc_type}=documents
+  upetem.Пошук цінової пропозиції  ${username}  ${tender_uaid}
+  Choose File       xpath=//*[@id='mForm:data:tFile_input']    ${path}
+  Wait Until Element Is Visible    xpath=//*[@id='mForm:docCard:dcType_label']    60
+  Click Element    xpath=//*[@id='mForm:docCard:dcType_label']
+  Sleep  2
+  Click Element    xpath=//*[@id="mForm:docCard:dcType_panel"]/div/ul/li[2]
+  Sleep  2
+  Click Element  xpath=//*[@id="mForm:docCard:docCard"]/table/tfoot/tr/td/button[1]
+  Sleep  20
+  Click Element    xpath=//*[text()='Зберегти']
+  Sleep  25
+
+
+Змінити документ в ставці
+  [Arguments]  ${username}  ${tender_uaid}  ${path}  ${doc_id}
+  upetem.Пошук цінової пропозиції  ${username}  ${tender_uaid}
+  Execute JavaScript                  window.scrollTo(0, 1000)
+  Sleep  2
+  Click Element    xpath=//a[contains(text(), '${doc_id}')]//ancestor::tr/td[6]/button[1]/span[1]
+  Wait Until Element Is Visible    xpath=//*[text()= 'Картка документу']
+  Choose File       xpath=//*[@id='mForm:docCard:dcFile_input']    ${path}
+  Sleep  5
+  Click Element    xpath=//*[@id="mForm:docCard:docCard"]/table/tfoot/tr/td/button[1]
+  Sleep  20
+  Click Element    xpath=//*[text()='Зберегти']
+  Sleep  25
+
+
+Змінити документацію в ставці
+  [Arguments]  ${username}  ${tender_uaid}  ${doc_data}  ${doc_id}
+  upetem.Пошук цінової пропозиції  ${username}  ${tender_uaid}
+  Execute JavaScript                  window.scrollTo(0, 800)
+  Sleep  2
+  Click Element    xpath=//a[contains(text(), '${doc_id}')]//ancestor::tr/td[6]/button[1]/span[1]
+  Wait Until Element Is Visible    xpath=//*[text()= 'Картка документу']    30
+  Click Element    xpath=//*[@id='mForm:docCard:dcType_label']
+  Sleep  2
+  Click Element    xpath=//*[@id="mForm:docCard:dcType_panel"]/div/ul/li[3]
+  Sleep  2
+  Click Element  xpath=//*[@id="mForm:docCard:docCard"]/table/tfoot/tr/td/button[1]
+  Sleep  20
+  Click Element    xpath=//*[text()='Зберегти']
+  Sleep  25
+
+
+Отримати інформацію із пропозиції
+  [Arguments]  ${username}  ${tender_uaid}  ${field}
+  upetem.Пошук цінової пропозиції  ${username}  ${tender_uaid}
+  Run Keyword If    "${TEST_NAME}" == "Відображення зміни статусу першої пропозиції після редагування інформації про тендер"    Wait Until Keyword Succeeds  420 s  15 s  subkeywords.Wait For Status
+  ${return_value}=    Run Keyword If    '${mode}' == 'belowThreshold'    subkeywords.Отримати дані з bid below
+  ...    ELSE IF                      '${mode}' != 'belowThreshold'    subkeywords.Отримати дані з bid open    ${field}
   [return]  ${return_value}
 
-Отримати інформацію про description
-  ${return_value}=   Отримати текст із поля і показати на сторінці   description
-  [return]  ${return_value}
-
-Отримати інформацію про minimalStep.amount
-  ${return_value}=   Отримати текст із поля і показати на сторінці   minimalStep.amount
-  ${return_value}=  Evaluate  ''.join('${return_value}'.split()[:-1])
-  ${return_value}=   Convert To Number   ${return_value}
-  [return]  ${return_value}
-
-Отримати інформацію про value.amount
-  ${return_value}=   Отримати текст із поля і показати на сторінці  value.amount
-  ${return_value}=  Evaluate  ''.join('${return_value}'.split()[:-3])
-  ${return_value}=   Convert To Number   ${return_value}
-  [return]  ${return_value}
-
-Отримати інформацію про value.currency
-  [return]  UAH
-#  ${return_value}=   Отримати текст із поля і показати на сторінці  value.amount
-#  ${return_value}=   Evaluate   "".join("${return_value}".split(' ')[:-3])
-#  ${return_value}=   Convert To Number   ${return_value}
-#  [return]  ${return_value}
-
-Отримати інформацію про value.valueAddedTaxIncluded
-  ${return_value}=   Отримати текст із поля і показати на сторінці  value.amount
-  ${return_value}=  Run Keyword If  'ПДВ' in '${return_value}'  Set Variable  True
-    ...  ELSE Set Variable  False
-  Log  ${return_value}
-  ${return_value}=   Convert To Boolean   ${return_value}
-  [return]  ${return_value}
-
-Відмітити на сторінці поле з тендера
-  [Arguments]   ${fieldname}  ${locator}
-  ${last_note_id}=  Add pointy note   ${locator}   Found ${fieldname}   width=200  position=bottom
-  Align elements horizontally    ${locator}   ${last_note_id}
-  sleep  1
-  Remove element   ${last_note_id}
-
-Отримати інформацію про tenderId
-  ${return_value}=   Отримати текст із поля і показати на сторінці   tenderId
-  [return]  ${return_value}
-
-Отримати інформацію про procuringEntity.name
-  ${return_value}=   Отримати текст із поля і показати на сторінці   procuringEntity.name
-  [return]  ${return_value}
-
-Отримати інформацію про enquiryPeriod.startDate
-  ${return_value}=   Отримати текст із поля і показати на сторінці  enquiryPeriod.startDate
-  ${return_value}=   Split String  ${return_value}  -
-  ${return_value}=   Strip String  ${return_value[0]}
-  ${return_value}=   convert_date_for_compare   ${return_value}
-  [return]  ${return_value}
-
-Отримати інформацію про enquiryPeriod.endDate
-  ${return_value}=   Отримати текст із поля і показати на сторінці  enquiryPeriod.endDate
-  ${return_value}=   Split String  ${return_value}  -
-  ${return_value}=   Strip String  ${return_value[1]}
-  ${return_value}=   convert_date_for_compare   ${return_value}
-  [return]  ${return_value}
-
-Отримати інформацію про tenderPeriod.startDate
-  ${return_value}=   Отримати текст із поля і показати на сторінці  tenderPeriod.startDate
-  ${return_value}=   Split String  ${return_value}  -
-  ${return_value}=   Strip String  ${return_value[0]}
-  ${return_value}=   convert_date_for_compare   ${return_value}
-  [return]  ${return_value}
-
-Отримати інформацію про tenderPeriod.endDate
-  ${return_value}=   Отримати текст із поля і показати на сторінці  tenderPeriod.endDate
-  ${return_value}=   Split String  ${return_value}  -
-  ${return_value}=   Strip String  ${return_value[1]}
-  ${return_value}=   convert_date_for_compare   ${return_value}
-  [return]  ${return_value}
-
-Отримати інформацію про items[0].description
-  ${return_value}=   Отримати текст із поля і показати на сторінці   items[0].description
-  [return]  ${return_value}
-
-Отримати інформацію про items[0].unit.code
-  ${return_value}=   Отримати текст із поля і показати на сторінці   items[0].quantity
-  ${return_value}=   Split String  ${return_value}  max_split=1
-  Run Keyword And Return If  '${return_value[1]}'== 'кілограми'   Convert To String  KGM
-  [return]  ${return_value}
-
-Отримати інформацію про items[0].unit.name
-  ${return_value}=   Отримати текст із поля і показати на сторінці   items[0].quantity
-  ${return_value}=   Split String  ${return_value}  max_split=1
-  [return]  ${return_value[1]}
-
-Отримати інформацію про items[0].quantity
-  ${return_value}=   Отримати текст із поля і показати на сторінці   items[0].quantity
-  ${return_value}=   Split String  ${return_value}  max_split=1
-  ${return_value}=   Convert To Number  ${return_value[0]}
-  [return]  ${return_value}
-
-Отримати інформацію про items[0].classification.scheme  
-  [return]  CPV
-  #${return_value}=   Отримати текст із поля і показати на сторінці  items[0].classification.scheme
-  #${return_value}=   Get Substring  ${return_value}  start=0  end=-1
-  #${return_value}=   Split String From Right  ${return_value}  max_split=1
-  #[return]  ${return_value[1]}
-
-Отримати інформацію про items[0].classification.id
-  ${return_value}=   Отримати текст із поля і показати на сторінці  items[0].classification.id
-  ${return_value}=   Split String  ${return_value}  max_split=1
-  [return]  ${return_value[0]}
-
-Отримати інформацію про items[0].classification.description
-  ${return_value}=   Отримати текст із поля і показати на сторінці  items[0].classification.id
-  ${return_value}=   Split String  ${return_value}  max_split=1
-  [return]  ${return_value[1]}
-
-Отримати інформацію про items[0].additionalClassifications[0].scheme
-  [return]  ДКПП
-  #${return_value}=   Отримати текст із поля і показати на сторінці  items[0].additionalClassifications[0].scheme
-  #${return_value}=   Get Substring  ${return_value}  start=0  end=-1
-  #${return_value}=   Split String From Right  ${return_value}  max_split=1
-  #[return]  ${return_value[1]}
-
-Отримати інформацію про items[0].additionalClassifications[0].id
-  ${return_value}=   Отримати текст із поля і показати на сторінці  items[0].additionalClassifications[0].id
-  ${return_value}=   Split String  ${return_value}
-  [return]  ${return_value[0]}
-
-Отримати інформацію про items[0].additionalClassifications[0].description
-  ${return_value}=  Отримати текст із поля і показати на сторінці  items[0].additionalClassifications[0].id
-  ${return_value}=   Split String  ${return_value}  max_split=1
-  [return]  ${return_value[1]}
-
-Отримати інформацію про items[0].deliveryAddress.postalCode
-  ${return_value}=  Отримати текст із поля і показати на сторінці  items[0].deliveryAddress.postalCode
-  [return]  ${return_value}
-
-Отримати інформацію про items[0].deliveryAddress.countryName
-  ${return_value}=  Отримати текст із поля і показати на сторінці  items[0].deliveryAddress.countryName
-  [return]  ${return_value}
-
-Отримати інформацію про items[0].deliveryAddress.region
-  ${return_value}=  Отримати текст із поля і показати на сторінці  items[0].deliveryAddress.region
-  [return]  ${return_value}
-
-Отримати інформацію про items[0].deliveryAddress.locality
-  ${return_value}=  Отримати текст із поля і показати на сторінці  items[0].deliveryAddress.locality
-  [return]  ${return_value}
-
-Отримати інформацію про items[0].deliveryAddress.streetAddress
-  ${return_value}=  Отримати текст із поля і показати на сторінці  items[0].deliveryAddress.address
-  [return]  ${return_value}
-
-Отримати інформацію про items[0].deliveryDate.endDate
-  ${return_value}=  Отримати текст із поля і показати на сторінці  items[0].deliveryDate.endDate
-  ${return_value}=   Split String  ${return_value}  max_split=1
-  ${return_value}=   convert_date_for_compare   ${return_value[1]}
-  [return]  ${return_value}
-
-Отримати інформацію про items[0].deliveryLocation.latitude
-  Fail  Координати не підтримуються майданчиком
-
-Отримати інформацію про items[0].deliveryLocation.longitude
-  Fail  Координати не підтримуються майданчиком
-
-Отримати інформацію про questions[0].title
-  Run Keyword And Return  get_text_excluding_children  ${locator.questions[0].title}
-
-Отримати інформацію про questions[0].description
-  Run Keyword And Return  get_text_excluding_children  ${locator.questions[0].description}
-
-Отримати інформацію про questions[0].date
-  ${return_value}=  get_text_excluding_children  ${locator.questions[0].date}
-  Run Keyword And Return  convert_date_for_compare  ${return_value}
-
-Отримати інформацію про questions[0].answer
-  Run Keyword And Return  get_text_excluding_children  ${locator.questions[0].answer}
-
-Отримати інформацію про status
-  [Arguments]  ${username}  ${tenderId}
-  Sync Tender
-  Open Tender
-  ${return_value}=   get_invisible_text  ${locator.status}
-  #${time}=  Get Time
-  #${str}=  Catenate  ${time}  ${return_value}
-  #Log To Console  ${str}
-  [return]  ${return_value}
-
-Отримати посилання на аукціон для глядача
-  [Arguments]  ${username}  ${tenderId}
-  Run Keyword And Return  Отримати посилання на аукціон  ${username}  ${tenderId}
 
 Отримати посилання на аукціон для учасника
-  [Arguments]  ${username}  ${tenderId}
-  Run Keyword And Return  Отримати посилання на аукціон  ${username}  ${tenderId}
+  [Arguments]  ${username}  ${tender_uaid}  ${lot_id}=${Empty}
+  Selenium2Library.Switch Browser    ${username}
+  upetem.Пошук тендера по ідентифікатору  ${username}  ${tender_uaid}
+  #Page Should Contain Element  xpath=//*[text()='Перегляд аукціону']
+  #Wait Until Element Is Visible    xpath=//*[contains(text(), '${lot_id}')]//ancestor::div[2]/div[2]/button[1]
+  Wait Until Element Is Visible    xpath=//*[contains(@onclick, 'https://auction-sandbox.openprocurement.org/tenders/')]    30
+  Sleep  2
+  #${url}=    Get Element Attribute    xpath=//*[contains(text(), '${lot_id}')]//ancestor::div[2]/div[2]/button[1]@href
+  ${auction_url}=    Get Element Attribute    xpath=//*[contains(@onclick, 'https://auction-sandbox.openprocurement.org/tenders/')]@onclick
+  ${url}=    Get Substring    ${auction_url}    13    97
+  [return]  ${url}
 
-Отримати посилання на аукціон
-  [Arguments]  ${username}  ${tenderId}
-  Selenium2Library.Switch browser  ${username}
-  upetem.Оновити сторінку з тендером  ${username}  ${tenderId}
-  Run Keyword And Return  Get Text  xpath=//div[contains(@class, 'auction-link-wrapper')]//a
+
+Пошук цінової пропозиції
+  [Arguments]  ${username}  ${tender_uaid}
+  Switch browser   ${username}
+  Click Element  xpath=//*[text()='Особистий кабiнет']
+  Wait Until Element Is Visible    xpath=//*[@id='wrapper']/div[1]/span/b    30
+  Click Element    xpath=//*[@id='wrapper']/div[1]/span/b
+  Wait Until Element Is Visible    xpath=//*[@id='wrapper']//li[5]    30
+  Sleep  3
+  Click Element At Coordinates    xpath=//*[@id='wrapper']//li[5]/a    -15    0
+  Wait Until Element Is Visible    xpath=//*[contains(text(), '${tender_uaid}')]//ancestor::tbody/tr[1]/td[1]/div    30
+  Click Element    xpath=//*[contains(text(), '${tender_uaid}')]//ancestor::tbody/tr[1]/td[1]/div
+  Wait Until Element Is Visible    xpath=//span[text()='Відкрити детальну інформацію']    30
+  Click Element    xpath=//span[text()='Відкрити детальну інформацію']
+  Sleep  20
 
 
+Отримати посилання на аукціон для глядача
+  [Arguments]  ${username}  ${tender_uaid}  ${lot_id}=${Empty}
+  Sleep  230
+  Selenium2Library.Switch Browser    ${username}
+  upetem.Пошук тендера по ідентифікатору  ${username}  ${tender_uaid}
+  #Page Should Contain Element  xpath=//*[text()='Перегляд аукціону']
+  #Wait Until Element Is Visible    xpath=//*[contains(text(), '${lot_id}')]//ancestor::div[2]/div[2]/button[1]
+  Wait Until Element Is Visible    xpath=//*[contains(@onclick, 'https://auction-sandbox.openprocurement.org/tenders/')]    30
+  Sleep  2
+  #${url}=    Get Element Attribute    xpath=//*[contains(text(), '${lot_id}')]//ancestor::div[2]/div[2]/button[1]@href
+  ${auction_url}=    Get Element Attribute    xpath=//*[contains(@onclick, 'https://auction-sandbox.openprocurement.org/tenders/')]@onclick
+  ${url}=    Get Substring    ${auction_url}    13    97
+  [return]  ${url}
 
-Wait date
-  [Arguments]  ${date}
-  ${sleep}=  wait_to_date  ${date}
-  Run Keyword If  ${sleep} > 0  Sleep  ${sleep}
 
-Switch To Questions
-  Click Element                      xpath=//a[contains(., 'Питання/Відповіді')]
-  Wait Until Page Contains           Питання та відповіді   10
+#                      QUALIFICATION OPERATIONS                     #
 
-Save tender ID
-  ${status}=  Run keyword And Return Status  Dictionary Should Not Contain Key  ${TENDER}  TENDER_ID
-  Run Keyword If  ${status}  Add id to tender
+Завантажити документ рішення кваліфікаційної комісії
+  [Arguments]  ${username}  ${document}  ${tender_uaid}  ${award_num}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
 
-Add id to tender
-  ${url}=   Log Location
-  ${tender_id}=  Split String From Right  ${url}  /  max_split=1
-  Set To Dictionary  ${TENDER}  TENDER_ID=${tender_id[1]}
 
-Get Tender Sync Url
-  [Arguments]  ${tender_id}
-  Run Keyword And Return  Catenate  SEPARATOR=  ${tender_sync_prefix}  ${tender_id}  ${tender_sync_postfix}  
+Підтвердити постачальника
+  [Arguments]  ${username}  ${tender_uaid}  ${award_num}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
 
-Sync Tender
-  ${status}=  Run keyword And Return Status  Dictionary Should Not Contain Key  ${TENDER}  TENDER_ID
-  Run Keyword And Return If  ${status}  Go To  ${BROKERS['upetem'].syncpage}
-  ${tender_id}=  Get From Dictionary  ${TENDER}  TENDER_ID
-  ${sync_url}=  Get Tender Sync Url  ${tender_id}
-  Go To  ${sync_url}
 
-Open Tender
-  ${no_id}=  Run Keyword And Return Status  Dictionary Should Not Contain Key  ${TENDER}  TENDER_ID
-  Return From Keyword If  ${no_id}
-  ${tender_id}=  Get From Dictionary  ${TENDER}  TENDER_ID
-  ${tender_url}=  Catenate  SEPARATOR=  ${tender_page_prefix}  ${tender_id}  
-  Go To  ${tender_url}
-  Sleep  1
+Дискваліфікувати постачальника
+  [Arguments]  ${username}  ${tender_uaid}  ${award_num}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Скасування рішення кваліфікаційної комісії
+  [Arguments]  ${username}  ${tender_uaid}  ${award_num}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+#                       LIMITED PROCUREMENT                          #
+
+Створити постачальника, додати документацію і підтвердити його
+  [Arguments]  ${username}  ${tender_uaid}  ${supplier_data}  ${document}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Скасувати закупівлю
+  [Arguments]  ${username}  ${tender_uaid}  ${cancellation_reason}  ${document}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Завантажити документацію до запиту на скасування
+  [Arguments]  ${username}  ${tender_uaid}  ${cancellation_reason}  ${document}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Змінити опис документа в скасуванні
+  [Arguments]  ${username}  ${tender_uaid}  ${cancellation_id}  ${document_id}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Підтвердити скасування закупівлі
+  [Arguments]  ${username}  ${tender_uaid}  ${cancell_id}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Отримати інформацію із документа до скасування
+  [Arguments]  ${username}  ${tender_uaid}  ${cancellation_id}  ${doc_id}  ${field_name}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Отримати документ до скасування
+  [Arguments]  ${username}  ${cancellation_id}  ${tender_uaid}  ${doc_id}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Підтвердити підписання контракту
+  [Arguments]  ${username}  ${tender_uaid}  ${contract_num}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+#                               OPEN PROCUREMENT                                #
+
+Підтвердити кваліфікацію
+  [Arguments]  ${username}  ${tender_uaid}  ${qualification_num}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Відхилити кваліфікацію
+  [Arguments]  ${username}  ${tender_uaid}  ${qualification_num}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Завантажити документ у кваліфікацію
+  [Arguments]  ${username}  ${document}  ${tender_uaid}  ${qualification_num}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Скасувати кваліфікацію
+  [Arguments]  ${username}  ${tender_uaid}  ${qualification_num}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Затвердити остаточне рішення кваліфікації
+  [Arguments]  ${username}  ${tender_uaid}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Перевести тендер на статус очікування обробки мостом
+  [Arguments]  ${username}  ${tender_uaid}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Отримати доступ до тендера другого етапу
+  [Arguments]  ${username}  ${tender_uaid}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
+
+
+Активувати другий етапу
+  [Arguments]  ${username}  ${tender_uaid}
+  Fail    "Драйвер не реалізовано"
+  Switch browser  ${username}
