@@ -16,16 +16,17 @@ Resource  upetem.robot
   [return]  ${return_value}
 
 Отримати інформацію про value.amount
-  ${value}=    Run Keyword If    '${mode}' == 'belowThreshold'    Get Text    xpath=//*[@id='mForm:budgetL']
-  ...          ELSE IF           '${mode}' != 'belowThreshold'    Get Text     xpath=//*[@id='mForm:budget']
-  ${return_value}=   Convert To Number   ${value}    2
+#  ${value}=    Run Keyword If    '${mode}' == 'belowThreshold'    Get Text    xpath=//*[@id='mForm:budgetL']
+#  ...          ELSE IF           '${mode}' != 'belowThreshold'    Get Text     xpath=//*[@id='mForm:budget']
+  ${value}=    Get Text    xpath=//*[@id='mForm:budgetL']
+  ${return_value}=   Convert To Number   ${value}
   [return]  ${return_value}
 
 Отримати інформацію про minimalStep.amount
   ${type_tender}=    Get Text            xpath=//*[@id='mForm:procurementMethodName']
   ${value_below}=  Get Value    xpath=//*[@id='mForm:step']
   ${value_open}=  Get Value           xpath=//*[@id='mForm:lotStep0']
-  ${return_value}=    Set Variable If    '${type_tender}' == 'Допорогові закупівлі'    ${value_open}    ${value_below}
+  ${return_value}=    Set Variable If    '${type_tender}' == 'Допорогові закупівлі'    ${value_below}    ${value_open}
   ${return_value}=  Convert To Number    ${return_value}
   [return]  ${return_value}
 
@@ -89,7 +90,7 @@ Resource  upetem.robot
 
 Отримати інформацію про status
   Run Keyword If    '${TEST_NAME}' == 'Неможливість завантажити документ першим учасником після закінчення прийому пропозицій'  Wait Until Keyword Succeeds  480 s  20 s  subkeywords.Wait For EndEnquire
-  Run Keyword If    '${TEST_NAME}' == 'Неможливість задати запитання на тендер після закінчення періоду уточнень'    Sleep  360
+  Run Keyword If    '${TEST_NAME}' == 'Неможливість задати запитання на тендер після закінчення періоду уточнень'    Sleep  30
   Run Keyword If    '${TEST_NAME}' == 'Неможливість задати запитання на тендер після закінчення періоду уточнень'    Reload Page
   Run Keyword If    '${TEST_NAME}' == 'Можливість вичитати посилання на аукціон для глядача'    Reload Page
   #Run Keyword If    '${TEST_NAME}' == 'Неможливість задати запитання на тендер після закінчення періоду уточнень'  Wait Until Keyword Succeeds  480 s  20 s  subkeywords.Wait For EndEnquire
@@ -176,7 +177,7 @@ Resource  upetem.robot
   ${return_value}=  Get Value                     xpath=//*[@id="mForm:bidItem_0:unit_input"]
   ${return_value}=  Get Substring                 ${return_value}  4
   ${return_value}=  Convert To String             ${return_value.replace(' ', '')}
-  ${return_value}=  adapt_data.adapt_unit_name    ${return_value}
+  ${return_value}=  upetem_service.adapt_unit_name    ${return_value}
   [return]  ${return_value}
 
 Отримати інформацію про items[0].unit.code

@@ -1,11 +1,9 @@
 *** Settings ***
 
-Library  Selenium2Library
 Library  String
 Library  DateTime
 Library  upetem_service.py
 Library  get_xpath.py
-Library  adapt_data.py
 Resource  subkeywords.robot
 Resource  view.robot
 
@@ -36,15 +34,13 @@ ${auction_url}
 
 Вхід
   [Arguments]  ${username}
-  Run Keyword And Ignore Error   Wait Until Page Contains Element    xpath=//*[text()='Вхід']   30
+  Wait Until Page Contains Element    xpath=//*[text()='Вхід']   30
   Click Element                      xpath=//*[text()='Вхід']
   #Run Keyword If    '${username}' == 'upetem_Owner'    Click Element    id=mForm:j_idt118
-  Run Keyword And Ignore Error   Wait Until Page Contains Element   id=mForm:email   20
+  Wait Until Page Contains Element   id=mForm:email   20
   Input text   id=mForm:email      ${USERS.users['${username}'].login}
-  Sleep  2
   Input text   id=mForm:pwd      ${USERS.users['${username}'].password}
   Click Button   id=mForm:login
-  Sleep  3
   ${status}=   Run Keyword And Return Status   Page Should Contain Element   id=mForm:j_idt121
   Run Keyword if   '${status}' == 'True'
   ...  Run Keywords
@@ -67,7 +63,8 @@ ${auction_url}
   ${lot_desc}                Get From Dictionary   ${lots[0]}                             description
   ${lot_value_amount}        Get From Dictionary   ${lots[0].value}                       amount
   ${lot_step_rate}           Get From Dictionary   ${lots[0].minimalStep}                 amount
-  #${features}=               Get From Dictionary    ${prepared_tender_data}               features
+  # line below not needed for single item tender
+  ${features}=  Run Keyword If  '${mode}'=='openua'  Get From Dictionary  ${prepared_tender_data}  features
   ${title}=                  Get From Dictionary    ${prepared_tender_data}               title
   ${title_en}=               Get From Dictionary    ${prepared_tender_data}               title_en
   ${description}=            Get From Dictionary    ${prepared_tender_data}               description
@@ -77,8 +74,8 @@ ${auction_url}
   ${budget}=                 upetem_service.convert_float_to_string                    ${budget}
   ${step_rate}=              Get From Dictionary    ${prepared_tender_data.minimalStep}   amount
   ${step_rate}=              upetem_service.convert_float_to_string                    ${step_rate}
-  ${enquiry_period}=        Get From Dictionary   ${prepared_tender_data}                enquiryPeriod
-  ${enquiry_period_end_date}=        upetem_service.convert_date_to_string            ${enquiry_period.endDate}
+  # line below not needed for open ua
+  ${enquiry_period_end_date}=  Run Keyword If  '${mode}'=='belowThreshold'  upetem_service.convert_date_to_string  ${prepared_tender_data.enquiryPeriod.endDate}
   ${tender_period}=          Get From Dictionary   ${prepared_tender_data}                tenderPeriod
   ${tender_period_start_date}=  upetem_service.convert_date_to_string  ${tender_period.startDate}
   ${tender_period_end_date}=  upetem_service.convert_date_to_string  ${tender_period.endDate}
@@ -138,17 +135,20 @@ ${auction_url}
   Click Element                       xpath=//*[@id='${vat_selector}']/tbody/tr/td[1]//div[2]
 #  Press Key                           id=mForm:lotStepPercent0   \\49  # workaround to properly input "1"
   ${step_selector}=  Set Variable If  ${NUMBER_OF_LOTS}==0  mForm:step  mForm:lotStep0
-  Sleep  10
+  Sleep  12
   Click Element  id=${step_selector}
-  Sleep  2
+  Sleep  3
   Input text  id=${step_selector}  ${step_rate}
-  Sleep  2
-  Input text                          xpath=//*[@id="mForm:dEA_input"]  ${enquiry_period_end_date}
-  Input text                          xpath=//*[@id="mForm:dSPr_input"]  ${tender_period_start_date}
+  # two lines below not needed for open ua
+  Run Keyword If  '${mode}'=='belowThreshold'  Input text  xpath=//*[@id="mForm:dEA_input"]  ${enquiry_period_end_date}
+  Run Keyword If  '${mode}'=='belowThreshold'  Input text  xpath=//*[@id="mForm:dSPr_input"]  ${tender_period_start_date}
   Input text                          xpath=//*[@id="mForm:dEPr_input"]  ${tender_period_end_date}
   Input text                          id=mForm:cCpvGrL_input      ${cpv_id_1}
   Wait Until Element Is Visible       xpath=.//*[@id='mForm:cCpvGrL_panel']/table/tbody/tr/td[2]/span   90
   Click Element                       xpath=.//*[@id='mForm:cCpvGrL_panel']/table/tbody/tr/td[2]/span
+
+  Run Keyword If  '${mode}' == 'openua'  upetem.Додати неціновий показник на тендер  ${features}
+
   Input text                          id=mForm:lotItems0:lotItem_0:cCpv_input   ${cpv_id}
   Wait Until Element Is Visible       xpath=//div[@id='mForm:lotItems0:lotItem_0:cCpv_panel']//td[1]/span   90
   Click Element                       xpath=//div[@id='mForm:lotItems0:lotItem_0:cCpv_panel']//td[1]/span
@@ -178,6 +178,9 @@ ${auction_url}
   #Execute Javascript    $('#mForm:lotItems0:delLoc1').val('${latitude}')
   #Execute Javascript    $('#mForm:lotItems0:delLoc2').val('${longitude}')
 
+  Run Keyword If  '${mode}' == 'openua'  upetem.Додати неціновий показник на лот  ${features}
+  Run Keyword If  '${mode}' == 'openua'  upetem.Додати неціновий показник на предмет  ${EMPTY}  ${EMPTY}  ${features}  ${EMPTY}
+
   Input text                          id=mForm:rName     ${name}
   Input text                          id=mForm:rPhone    ${telephone}
   Input text                          id=mForm:rMail     ${mail}
@@ -186,7 +189,6 @@ ${auction_url}
   Sleep  2
   Run Keyword if   '${mode}' == 'multi'   Додати предмет   items
   # Save
-  # Save
   Click Element                       xpath=//*[@id="mForm:bSave"]
   Wait Until Element Is Visible       xpath=//div[contains(@class, "ui-confirm-dialog") and @aria-hidden="false"]//span[text()='Так']    60
   Click Element                       xpath=//div[contains(@class, "ui-confirm-dialog") and @aria-hidden="false"]//span[text()='Так']
@@ -194,25 +196,18 @@ ${auction_url}
   #Run Keyword If  '${procurement_type}' == 'aboveThresholdEU'  subkeywords.Додати мову закупівлі  ${title_en}  ${description_en}  ${name_en}  ${items}  ${lots}  ${features}
   # Announce
   Execute JavaScript                  window.scrollTo(0, 0)
-  Wait Until Page Contains Element    xpath=//span[text()="Оголосити"]
-  Wait Until Element Is Visible       xpath=//span[text()="Оголосити"]    60
-  Sleep  8
+  Wait Until Keyword Succeeds  3x  1  Wait Until Element Is Visible  xpath=//span[text()="Оголосити"]  60
   Click Element                       xpath=//span[text()="Оголосити"]
-  Sleep   8
   # Confirm in message box
   Click Element                       xpath=//div[contains(@class, "ui-confirm-dialog") and @aria-hidden="false"]//span[text()="Оголосити"]
-  Wait Until Page Contains Element    xpath=//span[contains(@class, "ui-button-text ui-c") and text()="Так"]
-  Wait Until Element Is Visible       xpath=//span[contains(@class, "ui-button-text ui-c") and text()="Так"]
+  Wait Until Keyword Succeeds  3x  1  Wait Until Element Is Visible       xpath=//span[contains(@class, "ui-button-text ui-c") and text()="Так"]
   Click Element                       xpath=//span[contains(@class, "ui-button-text ui-c") and text()="Так"]
-  # More smart wait for id is needed there.
 
-  ${bid_status}=  Get Text  xpath=//*[@id="mForm:status"]
-  :FOR    ${INDEX}    IN RANGE    1    25
-  \  Exit For Loop If  '${bid_status}' == 'Очікування пропозицій'
-  \  Sleep  3
+  :FOR    ${INDEX}    IN RANGE    1    10
   \  ${bid_status}=  Get Text  xpath=//*[@id="mForm:status"]
-  \  Run Keyword If  '${bid_status}' == 'Оголошується'  Sleep  25
-  \  Run Keyword If  '${bid_status}' == 'Оголошується'  Reload Page
+  \  Exit For Loop If  '${bid_status}' == 'Очікування пропозицій'
+  \  Sleep  10
+  \  Reload Page
 
   ${tender_UAid}=  Get Text           id=mForm:nBid
   ${tender_UAid}=  Get Substring  ${tender_UAid}  19
@@ -234,25 +229,12 @@ ${auction_url}
   Click Element                    xpath=//a[./text()="Закупівлі"]
   Wait Until Element Is Visible    xpath=//div[@id='buttons']/button[1]    30
   Click Element                    xpath=//div[@id='buttons']/button[1]
-  Sleep  2
   Input Text                       xpath=//*[@id='search-by-number']/input    ${ARGUMENTS[1]}
   Click Element                    id=mForm:search_button
-  Sleep  5
-  :FOR    ${INDEX}    IN RANGE    1    45
-  \  ${find}=  Run Keyword And Return Status  Page Should Contain Element  xpath=//a[text()='${ARGUMENTS[1]}']/ancestor::div[1]/span[2]/a
-  \  Exit For Loop If  '${find}' == 'True'
-  \  Sleep  20
-#  \  Clear Element Text    xpath=//*[@id='search-by-number']/input
-#  \  Sleep  3
-#  \  Input Text            xpath=//*[@id='search-by-number']/input  ${ARGUMENTS[1]}
-#  \  Sleep  5
-  \  Click Element         id=mForm:search_button
-  \  Sleep  25
-#  Click Element    xpath=//a[contains(text(), '${ARGUMENTS[1]}')]/ancestor::div[1]/span[2]/a
+  Wait Until Page Contains Element  xpath=//a[text()='${ARGUMENTS[1]}']/ancestor::div[1]/span[2]/a
   Click Element    xpath=//a[text()='${ARGUMENTS[1]}']/ancestor::div[1]/span[2]/a
-  Wait Until Page Contains    ${ARGUMENTS[1]}   10
-  Sleep  5
-  Capture Page Screenshot
+  Wait Until Page Contains Element  id=mForm:nBid
+  Element Should Contain  id=mForm:nBid  ${ARGUMENTS[1]}
 
 
 Оновити сторінку з тендером
@@ -299,7 +281,7 @@ ${auction_url}
   Click Element                    xpath=//*[@id="mForm:bSave"]
   Wait Until Element Is Visible    xpath=(//*[@id="primefacesmessagedlg"]/div/a)[1]    120
   Click Element                    xpath=(//*[@id="primefacesmessagedlg"]/div/a)[1]
-  Sleep  220
+  Sleep  5
 
 
 Set Multi Ids
@@ -394,8 +376,17 @@ Set Multi Ids
 
 Змінити лот
   [Arguments]  ${username}  ${tender_uaid}  ${lot_id}  ${fieldname}  ${fieldvalue}
-  Fail    "Драйвер не реалізовано"
-  Switch browser    ${username}
+  Input Text  id=mForm:lotBudg0  "${fieldvalue}"
+  Sleep  12
+  Wait Until Keyword Succeeds  3x  1  Click Element  id=mForm:lotStep0
+  Sleep  2
+  Wait Until Keyword Succeeds  3x  1  Input Text  id=mForm:lotStep0  "${fieldvalue//100}"
+  Sleep  2
+  Click Button  id=mForm:bSave
+  Sleep  2
+  Element Should Not Be Visible  css=.ui-message-error-detail
+  Wait Until Element Is Visible  id=notifyMess  30
+  Element Should Contain  id=notifyMess  Збережено!
 
 
 Додати предмет закупівлі в лот
@@ -405,9 +396,29 @@ Set Multi Ids
 
 
 Завантажити документ в лот
-  [Arguments]  ${username}  ${filepath}  ${tender_uaid}  ${lot_id}
-  Fail    "Драйвер не реалізовано"
-  Switch browser    ${username}
+    [Arguments]    ${username}    ${filepath}    ${TENDER_UAID}    ${lot_id}
+    upetem.Пошук тендера по ідентифікатору    ${username}    ${TENDER_UAID}
+    Log  ${filepath}
+    Log  ${lot_id}
+    Choose File       xpath=//*[@id='mForm:docFile_input']    ${filepath}
+    Wait Until Element Is Visible    xpath=//*[text()='Картка документу']    30
+    Click Element                    xpath=//*[@id="mForm:docCard:dcType_label"]
+    Wait Until Element Is Visible    xpath=//*[@id="mForm:docCard:dcType_panel"]    30
+    Click Element                    xpath=//*[@id="mForm:docCard:dcType_panel"]/div/ul/li[2]
+    Sleep  2
+    Input Text  xpath=//div[@id="mForm:docCard:docCard"]//tr[5]//textarea  Тестовий опис
+    Click Element  xpath=//div[@id="mForm:docCard:docCard"]/table//tr[7]//td[2]//label
+    Wait Until Element Is Visible  xpath=//div[@id="mForm:docCard:docCard"]//tr[7]//td[2]//ul
+    Click Element  xpath=//div[@id="mForm:docCard:docCard"]//tr[7]//td[2]//li[contains(.,"${lot_id}")]
+    Sleep  2
+    Click Element                    xpath=//*[@id="mForm:docCard:docCard"]/table/tfoot/tr/td/button[1]
+    Sleep  20
+    Input text                       id=mForm:docAdjust     Додано тестовий документ для лоту
+    Sleep  5
+    Click Element                    xpath=//*[@id="mForm:bSave"]
+    Wait Until Element Is Visible    xpath=(//*[@id="primefacesmessagedlg"]/div/a)[1]  30
+    Click Element                    xpath=(//*[@id="primefacesmessagedlg"]/div/a)[1]
+    Sleep  10
 
 
 Видалити лот
@@ -437,21 +448,77 @@ Set Multi Ids
 #                                    FEATURES OPERATIONS                                    #
 
 Додати неціновий показник на тендер
-  [Arguments]  ${username}  ${tender_uaid}  ${feature}
-  Fail    "Драйвер не реалізовано"
-  Switch browser    ${username}
+  [Arguments]  ${features}
+  Click Element  xpath=//*[@id='mForm:meatpanel']//span
+  Sleep  3
+  Execute Javascript  document.getElementById("mForm:meatpanel").scrollIntoView(false)
+  Input Text  xpath=//*[@id='mForm:meatpanel']//input  ${features[1].title}
+  Input Text  xpath=//*[@id='mForm:meatpanel']//textarea  ${features[1].description}
+  ${i}  Set Variable  ${0}
+  :FOR    ${index}  ${element}    IN ENUMERATE  @{features[1].enum}
+  \  Run Keyword If  ${index} > 0  Click Element  css=.ui-datatable-header.ui-widget-header.ui-corner-top button
+  \  Run Keyword If  ${index} > 0  Wait Until Page Contains Element  jquery=.ui-datatable-tablewrapper td:nth(${i})
+  \  Click Element  jquery=.ui-datatable-tablewrapper td:nth(${i})
+  \  Input Text     jquery=.ui-datatable-tablewrapper td:nth(${i}) input  ${element.title}
+  \  Click Element  jquery=.ui-datatable-tablewrapper td:nth(${i+1})
+  \  Input Text     jquery=.ui-datatable-tablewrapper td:nth(${i+1}) input  Тестовий коментар
+  \  Click Element  jquery=.ui-datatable-tablewrapper td:nth(${i+2})
+  \  ${value}  Evaluate  int(${element.value}*100)
+  \  Press Key  css=div.ui-cell-editor-input[style='display: block;'] input  \\127  # necessary workaround
+  \  Input Text     jquery=.ui-datatable-tablewrapper td:nth(${i+2}) input  ${value}
+  \  ${i}  Set Variable  ${i+4}
 
 
 Додати неціновий показник на предмет
-  [Arguments]  ${username}  ${tender_uaid}  ${feature}  ${item_id}
-  Fail    "Драйвер не реалізовано"
-  Switch browser    ${username}
+  [Arguments]  ${username}  ${tender_uaid}  ${features}  ${item_id}
+  ${f_var}  Set Variable If  '${TEST_NAME}' == 'Можливість додати неціновий показник на перший предмет'  ${features}  ${features[2]}
+  ${num}  Set Variable If  '${TEST_NAME}' == 'Можливість додати неціновий показник на перший предмет'  3  2
+  Execute Javascript  window.scrollTo(0,3300)
+  Sleep  1
+  Click Element  jquery=span:contains('Додати показник'):nth(1)
+  Sleep  3
+  Execute Javascript  document.getElementById("mForm:lotItems0:meatDataLot0").scrollIntoView(false)
+  Input Text  xpath=//div[@id='mForm:lotItems0:meatDataLot0']/table[${num}]//input  ${f_var.title}
+  Input Text  xpath=//div[@id='mForm:lotItems0:meatDataLot0']/table[${num}]//textarea  ${f_var.description}
+  Click Element  xpath=//div[@id='mForm:lotItems0:meatDataLot0']/table[${num}]//tr[3]//div
+  Click Element  xpath=//div[@id='mForm:lotItems0:meatDataLot0']/table[${num}]//tr[3]//div[@class='ui-selectonemenu-items-wrapper']/ul/li[2]
+  ${i}  Set Variable  ${0}
+  :FOR    ${index}  ${element}    IN ENUMERATE  @{f_var.enum}
+  \  Run Keyword If  ${index} > 0  Click Element  jquery=.ui-datatable-header.ui-widget-header.ui-corner-top:nth(${num}) button
+  \  Run Keyword If  ${index} > 0  Wait Until Page Contains Element  jquery=.ui-datatable-tablewrapper:nth(${num}) td:nth(${i})
+  \  Click Element  jquery=.ui-datatable-tablewrapper:nth(${num}) td:nth(${i})
+  \  Input Text     jquery=.ui-datatable-tablewrapper:nth(${num}) td:nth(${i}) input  ${element.title}
+  \  Click Element  jquery=.ui-datatable-tablewrapper:nth(${num}) td:nth(${i+1})
+  \  Input Text     jquery=.ui-datatable-tablewrapper:nth(${num}) td:nth(${i+1}) input  Тестовий коментар
+  \  Click Element  jquery=.ui-datatable-tablewrapper:nth(${num}) td:nth(${i+2})
+  \  ${value}  Evaluate  int(${element.value}*100)
+  \  Press Key  css=div.ui-cell-editor-input[style='display: block;'] input  \\127  # necessary workaround
+  \  Input Text     jquery=.ui-datatable-tablewrapper:nth(${num}) td:nth(${i+2}) input  ${value}
+  \  ${i}  Set Variable  ${i+4}
+  Run Keyword If  '${TEST_NAME}' == 'Можливість додати неціновий показник на перший предмет'  Click Element  id=mForm:bSave
+  Run Keyword If  '${TEST_NAME}' == 'Можливість додати неціновий показник на перший предмет'  Wait Until Element Is Visible  id=notifyMess  30
 
 
 Додати неціновий показник на лот
-  [Arguments]  ${username}  ${tender_uaid}  ${feature}  ${lot_id}
-  Fail    "Драйвер не реалізовано"
-  Switch browser    ${username}
+  [Arguments]  ${features}
+  Click Element  jquery=span:contains('Додати показник'):nth(1)
+  Sleep  3
+  Execute Javascript  document.getElementById("mForm:lotItems0:meatDataLot0").scrollIntoView(false)
+  Input Text  xpath=//div[@id='mForm:lotItems0:meatDataLot0']//input  ${features[0].title}
+  Input Text  xpath=//div[@id='mForm:lotItems0:meatDataLot0']//textarea  ${features[0].description}
+  ${i}  Set Variable  ${0}
+  :FOR    ${index}  ${element}    IN ENUMERATE  @{features[0].enum}
+  \  Run Keyword If  ${index} > 0  Click Element  jquery=.ui-datatable-header.ui-widget-header.ui-corner-top:nth(1) button
+  \  Run Keyword If  ${index} > 0  Wait Until Page Contains Element  jquery=.ui-datatable-tablewrapper:nth(1) td:nth(${i})
+  \  Click Element  jquery=.ui-datatable-tablewrapper:nth(1) td:nth(${i})
+  \  Input Text     jquery=.ui-datatable-tablewrapper:nth(1) td:nth(${i}) input  ${element.title}
+  \  Click Element  jquery=.ui-datatable-tablewrapper:nth(1) td:nth(${i+1})
+  \  Input Text     jquery=.ui-datatable-tablewrapper:nth(1) td:nth(${i+1}) input  Тестовий коментар
+  \  Click Element  jquery=.ui-datatable-tablewrapper:nth(1) td:nth(${i+2})
+  \  ${value}  Evaluate  int(${element.value}*100)
+  \  Press Key  css=div.ui-cell-editor-input[style='display: block;'] input  \\127  # necessary workaround
+  \  Input Text     jquery=.ui-datatable-tablewrapper:nth(1) td:nth(${i+2}) input  ${value}
+  \  ${i}  Set Variable  ${i+4}
 
 
 Отримати інформацію із нецінового показника
@@ -472,13 +539,11 @@ Set Multi Ids
 
 Видалити неціновий показник
   [Arguments]  @{ARGUMENTS}
-  [Documentation]
-  ...      ${ARGUMENTS[0]} ==  username
-  ...      ${ARGUMENTS[1]} ==  tender_uaid
-  ...      ${ARGUMENTS[2]} ==  feature_id
-
-  Fail    "Драйвер не реалізовано"
-  Switch browser    ${ARGUMENTS[0]}
+  Execute Javascript  window.scrollTo(0,4300)
+  Click Element  xpath=//div[@id='mForm:lotItems0:meatDataLot0']/table[3]//td/button
+  Wait Until Element Is Not Visible  xpath=//div[@id='mForm:lotItems0:meatDataLot0']/table[3]//td/button  20
+  Click Element  id=mForm:bSave
+  Wait Until Element Is Visible  id=notifyMess  30
 
 
 #                                    QUESTION                                               #
@@ -558,11 +623,10 @@ Set Multi Ids
   [Arguments]  ${username}  ${tender_uaid}  ${answer_data}  ${question_id}
   ${answer}=     Get From Dictionary    ${answer_data.data}    answer
   Selenium2Library.Switch Browser    ${username}
-  Sleep  5
   upetem.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
   Wait Until Element Is Visible    xpath=//*[@id="mForm:status"]   60
   ${tender_status}=    Get Text    xpath=//*[@id="mForm:status"]
-  Run Keyword If  '${tender_status}' != 'Період уточнень'    Fail    "Період уточнень закінчився"
+#  Run Keyword If  '${tender_status}' != 'Період уточнень'    Fail    "Період уточнень закінчився"
   Click Element                      xpath=//span[./text()='Обговорення']
   Sleep  3
   Click Element                      xpath=//span[contains(text(), '${question_id}')]/ancestor::div[@id='mForm:data_content']//button
@@ -570,7 +634,8 @@ Set Multi Ids
   Input Text    xpath=//*[@id="mForm:messQ"]    ${answer}
   Sleep  2
   Click Element                      xpath=//*[@id="mForm:btnR"]
-  Sleep  30
+  Wait Until Element Is Visible  id=notifyMess  30
+  Element Should Contain  id=notifyMess  Збережено!
 
 #                                CLAIMS                                 #
 

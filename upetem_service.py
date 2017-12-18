@@ -17,18 +17,23 @@ def adapt_data(data):
     data['data']['items'][0]['deliveryDate']['endDate'] = adapt_delivery_date(data['data']['items'][0]['deliveryDate']['endDate'])
     return data
 
+
+def adapt_unit_name(data):
+    return {
+        u"наб.": u"набір",
+        u"шт.": u"штуки",
+        u"упак.": u"упаковка"
+    }.get(data, data)
+
+
 def adapt_data_view(data):
     data['data']['items'][0]['deliveryDate']['startDate'] = adapt_delivery_date(data['data']['items'][0]['deliveryDate']['startDate'])
     data['data']['items'][0]['deliveryDate']['endDate'] = adapt_delivery_date(data['data']['items'][0]['deliveryDate']['endDate'])
     return data
 
+
 def download_file(url, file_name, output_dir):
     urllib.urlretrieve(url, ('{}/{}'.format(output_dir, file_name)))
-
-
-#def download_file(url, file_name):
-#    output_dir = BuiltIn().get_variable_value("${OUTPUT_DIR}")
-#    urllib.urlretrieve(url, os.path.join(output_dir, file_name))
 
 
 def get_type_field(field):
@@ -43,20 +48,16 @@ def get_type_field(field):
             'additionalClassifications.scheme', 'additionalClassifications.description',
             'value.currency', 'minimalStep.currency', 'featureOf', 'status', 'resolutionType', 'resolution', 'satisfied', 'complaintID', 'cancellationReason']
 
-
     if field in value:
         type_fields = 'value'
     elif field in text:
         type_fields = 'text'
-
     return type_fields
                        
 
 def get_delivery_region(region):
     if region == u"місто Київ":
         delivery_region = u"м.Київ"
-    elif region == u"м.Київ":
-        delivery_region = u"місто Київ"
     elif region == u"Дніпропетровська область":
         delivery_region = u"Днiпропетровська область"
     elif region == u"Рівненська область":
@@ -64,15 +65,19 @@ def get_delivery_region(region):
     else: delivery_region = region
     return delivery_region
 
+
 def convert_float_to_string(number):
     return format(number, '.2f')
+
 
 def convert_coordinates_to_string(number):
     return format(number)
 
+
 def adapt_delivery_date(date):
     adapt_date = ''.join([date[:date.index('T') + 1], '00:00:00', date[date.index('+'):]])
     return adapt_date
+
 
 def parse_date(date_str):
     date_str = datetime.strptime(date_str, "%d.%m.%Y %H:%M")
@@ -111,28 +116,28 @@ def parse_complaintPeriod_date(date_string):
 
 
 def capitalize_first_letter(string):
-    string = string.lower()
     string = string.capitalize()
     return string
 
 
 def get_unit_name(name):
-    value = {
+    return {
         u'штуки': u'\tшт.\t',
         u'упаковка': u'\tупак.\t',
         u'набір': u'\tнаб.\t',
-        u'кілограми': u'\tкг.\t'
-    }
-    value = value.get(name)
-    if value:
-        return value
-    else:
-        return name
+        u'кілограми': u'\tкг.\t',
+        u'лот': u'\tлот\t',
+    }.get(name, name)
 
 
 def convert_locality(name):
-    string = name.upper()
-    return string
+    if name == u"Київ":
+        adapted_name = u"М.КИЇВ"
+    elif name == u"Дніпропетровськ":
+        adapted_name = u"ДНІПРОПЕТРОВСЬКА ОБЛАСТЬ/М.ДНІПРО"
+    else:
+        adapted_name = name
+    return adapted_name.upper()
 
 
 def convert_status(tender_status):
@@ -170,10 +175,10 @@ def get_claim_status(claim_status, test_name):
 
 
 def get_resolution_type(resolution):
-    type = {
+    types = {
         u'Вирішено': 'resolved'
     }
-    return type[resolution]
+    return types[resolution]
 
 
 def convert_satisfied(value):
@@ -186,6 +191,7 @@ def convert_satisfied(value):
 
 def get_unit(field,unit_data):
     unit = unit_data.split()
+    unit[1] = adapt_unit_name(unit[1])
     unit_value = {
         'unit.code': unit[0],
         'unit.name': unit[1]
@@ -256,3 +262,15 @@ def convert_bid_status(value):
         u'Недійсна пропозиція': 'invalid'
     }
     return status[value]
+
+
+def get_all_dates(initial_tender_data, key):
+    tender_period = initial_tender_data.data.tenderPeriod
+    start_dt = dateutil.parser.parse(tender_period['startDate'])
+    end_dt = dateutil.parser.parse(tender_period['endDate'])
+    data = {
+        'EndPeriod': start_dt.strftime("%d.%m.%Y %H:%M"),
+        'StartDate': start_dt.strftime("%d.%m.%Y %H:%M"),
+        'EndDate': end_dt.strftime("%d.%m.%Y %H:%M"),
+    }
+    return data.get(key, '')
