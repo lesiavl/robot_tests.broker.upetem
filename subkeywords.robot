@@ -72,10 +72,7 @@ Library  get_xpath.py
 
 Get Scheme
   [Arguments]  ${value}
-#  ${value}=    Get Substring    ${value}    36    38
-#  ${value}=    Replace String    ${value}    ДК    CPV
-  ${value}=    Get Substring    ${value}    36    42
-  ${value}=    Replace String    ${value}    ${space}    ${empty}
+  ${value}=    Replace String    ${value[4:10]}    ${space}    ${empty}
   [return]  ${value}
 
 Wait For Question
@@ -135,6 +132,11 @@ Wait For Answered
   Reload Page
   Sleep  5
   Page Should Contain Element    xpath=//*[@id='mForm:data:resolutionType_label']
+
+Wait For Resolved
+  Reload Page
+  Sleep  5
+  Element Should Contain  xpath=(//tbody/tr[1]/td[2])[1]  Вирішена
 
 Wait For Satisfied
   Reload Page
@@ -271,3 +273,73 @@ Switch new lot
   Wait Until Keyword Succeeds  420 s  15 s  subkeywords.Wait For Status
   Click Element    xpath=//*[text()='Підтвердити пропозицію']
   Sleep  30
+
+Заповнити картку організації
+    [Arguments]  ${tender_data}
+    ${data}  Set Variable  ${tender_data.data.procuringEntity}
+    Wait Until Element Is Visible  css=div.cabinet-user-name
+    Click Element  css=div.cabinet-user-name
+    Wait Until Page Contains Element  css=span.nav-icon
+    Click Element  css=span.nav-icon
+    Sleep  1
+    Click Link  Мої організації
+    Wait Until Page Contains Element  css=tr.ui-widget-content.ui-datatable-even td a
+    Click Element  css=tr.ui-widget-content.ui-datatable-even td a
+    Wait Until Page Contains Element  id=mForm:grid
+    Input Text  id=mForm:tin  ${data.identifier.id}
+    Input Text  id=mForm:sn   ${data.name}
+    Input Text  id=mForm:fn   ${data.identifier.legalName}
+    Click Element  id=mForm:cReg_label
+    ${region}  upetem_service.get_delivery_region  ${data.address.region}
+    Click Element  jquery=li:contains('${region}')
+    Input Text  id=mForm:cTer_input  ${data.address.locality}
+    Wait Until Keyword Succeeds  3x  1  Wait Until Element Is Visible  id=mForm:cTer_panel
+    Click Element  xpath=(//div[@id='mForm:cTer_panel']//tr)[1]
+    Input Text  id=mForm:zc  ${data.address.postalCode}
+    Input Text  id=mForm:adr  ${data.address.streetAddress}
+    Click Element  jquery=span.ui-c:contains('Зберегти')
+    ${already_exists}  Run Keyword And Return Status  Element Should Be Visible  id=primefacesmessagedlg
+    Run Keyword If  ${already_exists}  upetem_service.increment_identifier  ${tender_data}
+    Run Keyword If  ${already_exists}  Заповнити картку організації  ${tender_data}
+
+Оголосити тендер
+    Execute JavaScript  window.scrollTo(0,0)
+    Wait Until Keyword Succeeds  3x  1  Wait Until Element Is Visible  xpath=//span[text()="Оголосити"]
+    Click Element  xpath=//span[text()="Оголосити"]
+    Click Element  xpath=//div[contains(@class, "ui-confirm-dialog") and @aria-hidden="false"]//span[text()="Оголосити"]
+    Wait Until Keyword Succeeds  3x  1  Wait Until Element Is Visible       xpath=//span[contains(@class, "ui-button-text ui-c") and text()="Так"]
+    Click Element  xpath=//span[contains(@class, "ui-button-text ui-c") and text()="Так"]
+
+Додати мову закупівлі
+  [Arguments]  ${description_en}  ${title_en}  ${name_en}  ${lots}  ${items}  ${features}
+  Wait Until Element Is Visible  jquery=span:contains('Додати мову')
+  Click Element  jquery=span:contains('Додати мову')
+  Click Element  jquery=span:contains('English')
+  Input Text  id=mForm:j_idt269:j_idt321  ${description_en}
+  Input Text  id=mForm:j_idt269:j_idt335  ${title_en}
+  Input Text  id=mForm:j_idt269:j_idt350  ${name_en}
+  Input Text  id=mForm:j_idt269:j_idt364  ${lots[0].title_en}
+  Input Text  id=mForm:j_idt269:j_idt378  opys lotu nomer odin
+  Input Text  id=mForm:j_idt269:j_idt391  ${items[0].description_en}
+  # features 0
+  Input Text  xpath=//tbody/tr[15]/td[3]/input  ${features[0].title_en}
+  Input Text  xpath=//tbody/tr[19]/td[3]/input  ${features[0].enum[0].title}
+  Input Text  xpath=//tbody/tr[23]/td[3]/input  ${features[0].enum[1].title}
+  Input Text  xpath=//tbody/tr[27]/td[3]/input  ${features[0].enum[2].title}
+  # features 2
+  Input Text  xpath=//tbody/tr[31]/td[3]/input  ${features[2].title_en}
+  Input Text  xpath=//tbody/tr[35]/td[3]/input  ${features[2].enum[0].title}
+  Input Text  xpath=//tbody/tr[39]/td[3]/input  ${features[2].enum[1].title}
+  Input Text  xpath=//tbody/tr[43]/td[3]/input  ${features[2].enum[2].title}
+  # features 1
+  Input Text  xpath=//tbody/tr[47]/td[3]/input  ${features[1].title_en}
+  Input Text  xpath=//tbody/tr[51]/td[3]/input  ${features[1].enum[0].title}
+  Input Text  xpath=//tbody/tr[55]/td[3]/input  ${features[1].enum[1].title}
+  Input Text  xpath=//tbody/tr[59]/td[3]/input  ${features[1].enum[2].title}
+
+  Click Element  jquery=span:contains('Зберегти')
+  Sleep  5
+
+
+
+

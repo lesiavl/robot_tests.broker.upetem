@@ -110,7 +110,13 @@ Resource  upetem.robot
   [return]  ${return_value}
 
 Отримати інформацію про items[0].deliveryDate.endDate
-  ${return_value}=  Get Value           xpath=//*[@id="mForm:bidItem_0:item0"]/tbody/tr[5]/td[4]/input
+#  ${return_value}=  Get Value           xpath=//*[@id="mForm:bidItem_0:item0"]/tbody/tr[5]/td[4]/input
+  ${return_value}  Get Value  xpath=//*[@id="mForm:lotItems0:lotItem_0:item0"]/tbody/tr[10]/td[4]/input
+  ${return_value}=  upetem_service.parse_item_date  ${return_value}
+  [return]  ${return_value}
+
+Отримати інформацію про items[1].deliveryDate.endDate
+  ${return_value}  Get Value  xpath=//*[@id="mForm:lotItems0:lotItem_1:item1"]/tbody/tr[10]/td[4]/input
   ${return_value}=  upetem_service.parse_item_date  ${return_value}
   [return]  ${return_value}
 
@@ -159,9 +165,10 @@ Resource  upetem.robot
   [return]  ${return_value}
 
 Отримати інформацію про items[0].additionalClassifications[0].scheme
-  ${return_value}=  Get Text           xpath=(//*[@id="mForm:bidItem_0:item0"]/tbody/tr[3]/td[3]/label)[2]
-  ${return_value}=  Get Substring  ${return_value}  36  40
-  ${return_value}=  Convert To String  ${return_value}
+#  ${return_value}=  Get Text           xpath=(//*[@id="mForm:bidItem_0:item0"]/tbody/tr[3]/td[3]/label)[2]
+  ${return_value}=  Get Text   xpath=(//*[@id="mForm:lotItems0:lotItem_0:item0"]/tbody/tr[2]//label)[2]
+#  ${return_value}=  Get Substring  ${return_value}  36  40
+#  ${return_value}=  Convert To String  ${return_value}
   [return]  ${return_value}
 
 Отримати інформацію про items[0].additionalClassifications[0].id
@@ -222,3 +229,105 @@ Resource  upetem.robot
   Sleep  5
   ${return_value}=  Get Text  xpath=//*[@id="mForm:data_data"]/tr[2]/td[1]/span[2]
   [return]  ${return_value}
+
+Отримати інформацію про awards[0].complaintPeriod.endDate
+  Run Keyword If  '${TEST NAME}'=='Відображення закінчення періоду подачі скарг на пропозицію'  Подивитись на учасників
+  ${contract_button_is_visible}  Run Keyword And Return Status  Element Should Be Visible  jquery=span:contains('Договір')
+  Run Keyword If  ${contract_button_is_visible}  Click Element  jquery=span:contains('Договір')
+  ${period}  Run Keyword And Return Status  Page Should Contain  Період оскаржень
+  ${period_selector}  Set Variable If  ${period}  (//div[@id='mForm:data']//td[2])[1]  //*[@id='mForm:pTop']
+  ${period_index}  Set Variable If  ${period}  19  73
+  ${complaintPeriod}  Get Text  xpath=${period_selector}
+  ${return_value}  upetem_service.parse_complaintPeriod_endDate  ${complaintPeriod[${period_index}:]}
+  [return]  ${return_value}
+
+Подивитись на учасників
+  Click Element  jquery=span:contains('Учасники закупівлі')
+  Wait Until Element Is Visible  id=mForm:partList_list
+  Click Element  jquery=span:contains('Переглянути')
+  Wait Until Element Is Visible  id=mForm:tabs:award_status_label
+
+Отримати інформацію про causeDescription
+  ${return_value}  Get Text  id=mForm:cause_description
+  [return]  ${return_value}
+
+Отримати інформацію про cause
+  ${cause_text}  Get Text  xpath=//td[@id='mForm:cardCause']/label
+  ${return_value}  upetem_service.convert_cause_type  ${cause_text[11]}
+  [return]  ${return_value}
+
+Отримати інформацію про procuringEntity.contactPoint.name
+  ${return_value}  Get Value  id=mForm:rName
+  [return]  ${return_value}
+
+Отримати інформацію про procuringEntity.contactPoint.telephone
+  ${return_value}  Get Value  id=mForm:rPhone
+  [return]  ${return_value}
+
+Отримати інформацію про procuringEntity.identifier.legalName
+  ${return_value}  Get Text  id=mForm:orgFName
+  [return]  ${return_value}
+
+Отримати інформацію про documents[0].title
+  ${return_value}  Get Text  xpath=//div[@id='mForm:pnlFiles']//a
+  [return]  ${return_value}
+
+Отримати інформацію про awards[0].documents[0].title
+  Подивитись на учасників
+  ${title}  Get Text  id=mForm:tabs:j_idt310:j_idt311:0:grid2
+  [return]  ${title}
+
+Отримати інформацію про awards[0].status
+  Подивитись на учасників
+  ${status}  Get Text  id=mForm:tabs:award_status_label
+  ${return_value}  Set Variable If  '${status}'=='Закупівлю виграв учасник'  active  other status
+#  Click Element  id=mForm:tabs:nBid
+#  Wait Until Element Is Visible  id=mForm:nBid
+  [return]  ${return_value}
+
+Отримати інформацію про awards[0].suppliers[0].contactPoint.telephone
+  Подивитись на учасників
+  ${return_value}  Get Value  id=mForm:tabs:rPhone
+  [return]  ${return_value}
+
+Отримати інформацію про awards[0].suppliers[0].contactPoint.name
+  Подивитись на учасників
+  ${return_value}  Get Value  id=mForm:tabs:rName
+  [return]  ${return_value}
+
+Отримати інформацію про awards[0].suppliers[0].contactPoint.email
+  Подивитись на учасників
+  ${return_value}  Get Value  id=mForm:tabs:rMail
+  [return]  ${return_value}
+
+Отримати інформацію про contracts[0].status
+  ${contract_button_is_not_visible}  Run Keyword And Return Status  Page Should Not Contain Element  jquery=span:contains('Договір')
+  Run Keyword If  ${contract_button_is_not_visible}  Подивитись на учасників
+  Click Element  jquery=span:contains('Договір')
+  Wait Until Element Is Visible  id=mForm:pAcc:contract_status_label
+  ${pending}  Set Variable  цей договір запропоновано, але він ще не діє. Можливо очікується його підписання
+  ${active}  Set Variable  цей договір підписаний всіма учасниками, і зараз діє на законних підставах
+  ${wait_for}  Set Variable If  '${TEST NAME}'=='Відображення статусу непідписаної угоди з постачальником переговорної процедури'  ${pending}  ${active}
+  :FOR    ${INDEX}    IN RANGE    1    11
+  \  ${status}  Get Text  id=mForm:pAcc:contract_status_label
+  \  Exit For Loop If  '${status}' == '${wait_for}'
+  \  Sleep  15
+  \  Reload Page
+  ${return_value}  Set Variable If
+  ...  '${status}'=='${active}'  active
+  ...  '${status}'=='${pending}'  pending
+  [return]  ${return_value}
+
+Отримати інформацію про lots[0].title
+  ${return_value}  Get Text  id=mForm:lotTitle0
+  [return]  ${return_value}
+
+Отримати інформацію про lots[0].value.amount
+  ${value}  Get Value  id=mForm:lotBudg0
+  ${return_value}  Convert To Number   ${value}
+  [return]  ${return_value}
+
+Отримати інформацію про lots[0].description
+  ${return_value}  Get Text  id=mForm:lotDesc0
+  [return]  ${return_value}
+
