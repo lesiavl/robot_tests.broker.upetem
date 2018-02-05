@@ -99,6 +99,7 @@ ${auction_url}
   ${longitude}=  upetem_service.convert_coordinates_to_string    ${longitude}
   ${cpv_id}=           Get From Dictionary   ${items[0].classification}         id
   ${cpv_id_1}=           Get Substring    ${cpv_id}   0   3
+  ${mnn_id}  Run Keyword If  ${cpv_id_1}==336  Set Variable  ${items[0].additionalClassifications[0].id}
   ${dkpp_id}=        Convert To String     000
   #${dkpp_desc}=     Get From Dictionary   ${items[0].additionalClassifications[0]}   description
   #${dkpp_id}=       Get From Dictionary   ${items[0].additionalClassifications[0]}  id
@@ -140,10 +141,10 @@ ${auction_url}
   Run Keyword If  '${mode}'!='negotiation'  Click Element                       xpath=//*[@id='${vat_selector}']/tbody/tr/td[1]//div[2]
 #  Press Key                           id=mForm:lotStepPercent0   \\49  # workaround to properly input "1"
   ${step_selector}=  Set Variable If  ${NUMBER_OF_LOTS}==0  mForm:step  mForm:lotStep0
-  Run Keyword If  '${mode}'!='negotiation'  Sleep  12
-  Run Keyword If  '${mode}'!='negotiation'  Click Element  id=${step_selector}
-  Run Keyword If  '${mode}'!='negotiation'  Sleep  3
-  Run Keyword If  '${mode}'!='negotiation'  Input text  id=${step_selector}  ${step_rate}
+#  Run Keyword If  '${mode}'!='negotiation'  Sleep  12
+#  Run Keyword If  '${mode}'!='negotiation'  Click Element  id=${step_selector}
+#  Run Keyword If  '${mode}'!='negotiation'  Sleep  3
+
   # two lines below not needed for open ua
   Run Keyword If  '${mode}'=='belowThreshold'  Input text  xpath=//*[@id="mForm:dEA_input"]  ${enquiry_period_end_date}
   Run Keyword If  '${mode}'=='belowThreshold'  Input text  xpath=//*[@id="mForm:dSPr_input"]  ${tender_period_start_date}
@@ -157,10 +158,13 @@ ${auction_url}
   Input text                          id=mForm:lotItems0:lotItem_0:cCpv_input   ${cpv_id}
   Wait Until Element Is Visible       xpath=//div[@id='mForm:lotItems0:lotItem_0:cCpv_panel']//td[1]/span   90
   Click Element                       xpath=//div[@id='mForm:lotItems0:lotItem_0:cCpv_panel']//td[1]/span
-  Input text                          id=mForm:lotItems0:lotItem_0:cDkpp_input    ${dkpp_id}
+  Sleep  2
+  Run Keyword If  ${cpv_id_1}==336   Input Text  id=mForm:lotItems0:lotItem_0:mozInn_input  ${mnn_id}
+  Run Keyword If  ${cpv_id_1}==336   Wait Until Element Is Visible  id=mForm:lotItems0:lotItem_0:mozInn_panel
+  Run Keyword If  ${cpv_id_1}==336   Click Element  xpath=//div[@id='mForm:lotItems0:lotItem_0:mozInn_panel']//td[1]
+  Run Keyword If  ${cpv_id_1}!=336   Input text  id=mForm:lotItems0:lotItem_0:cDkpp_input    ${dkpp_id}
 #  Wait Until Element Is Visible       xpath=//div[@id='mForm:lotItems0:lotItem_0:cDkpp_panel']//tr[1]/td[2]/span   90
 #  Click Element                       xpath=//div[@id='mForm:lotItems0:lotItem_0:cDkpp_panel']//tr[1]/td[2]/span
-  Sleep  2
   Input text                          id=mForm:lotItems0:lotItem_0:subject    ${item_description}
   Sleep  2
   Input text                          id=mForm:lotItems0:lotItem_0:unit_input    ${code}
@@ -173,7 +177,7 @@ ${auction_url}
   Sleep  2
   Click Element                       xpath=//ul[@id='mForm:lotItems0:lotItem_0:cReg_items']/li[text()='${item_delivery_region}']
   Sleep  2
-  Input Text                          xpath=//*[@id="mForm:lotItems0:lotItem_0:cTer_input"]    ${item_locality}
+  Wait Until Keyword Succeeds  3x  1  Input Text  xpath=//*[@id="mForm:lotItems0:lotItem_0:cTer_input"]    ${item_locality}
   Wait Until Element Is Visible       xpath=//*[@id='mForm:lotItems0:lotItem_0:cTer']//td[1]    60
   Press Key                           //*[@id="mForm:lotItems0:lotItem_0:cTer_input"]    \\13
   Input text                          id=mForm:lotItems0:lotItem_0:zc  ${item_delivery_postal_code}
@@ -207,6 +211,13 @@ ${auction_url}
   #  Завантажити документ до тендеру  ${file_path}
   Sleep  2
   Run Keyword if   '${mode}' == 'negotiation'  upetem.Додати предмет закупівлі в лот  ${items}
+  Run Keyword If  '${mode}'!='negotiation'  Input text  id=${step_selector}  ${step_rate}
+  Sleep  5
+  ${calculated_step}  Get Value  id=mForm:lotStepPercent0
+  ${updated_step}  Evaluate  ${prepared_tender_data.value.amount}*${calculated_step}/100
+  Log  ${ARGUMENTS[1]}
+  Run Keyword If  '${mode}' == 'openeu'  upetem_service.adapt_step  ${ARGUMENTS[1]}  ${updated_step}
+  Log  ${ARGUMENTS[1]}
   # Save
   Click Element                       xpath=//*[@id="mForm:bSave"]
 #  Wait Until Element Is Visible  id=notifyMess
@@ -839,16 +850,8 @@ Set Multi Ids
 
 
 Створити вимогу про виправлення визначення переможця
-  [Arguments]  @{ARGUMENTS}
-  [Documentation]
-  ...      ${ARGUMENTS[0]} ==  username
-  ...      ${ARGUMENTS[1]} ==  tender_uaid
-  ...      ${ARGUMENTS[2]} ==  claim
-  ...      ${ARGUMENTS[3]} ==  award_index
-  ...      ${ARGUMENTS[4]} ==  document
-
-  Fail    "Драйвер не реалізовано"
-  Switch browser    ${ARGUMENTS[0]}
+  [Arguments]  ${username}  ${tender_uaid}  ${claim}  ${award_index}  ${document}=${None}
+  upetem.Створити вимогу про виправлення умов закупівлі  ${username}  ${tender_uaid}  ${claim}  ${document}
 
 
 Завантажити документацію до вимоги
@@ -912,8 +915,7 @@ Set Multi Ids
 
 Відповісти на вимогу про виправлення визначення переможця
   [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${answer_data}  ${award_index}
-  Fail    "Драйвер не реалізовано"
-  Switch browser    ${username}
+  upetem.Відповісти на вимогу про виправлення умов закупівлі  ${username}  ${tender_uaid}  ${complaintID}  ${answer_data}
 
 
 Підтвердити вирішення вимоги про виправлення умов закупівлі
@@ -1237,6 +1239,7 @@ Set Multi Ids
   \  Exit For Loop If  ${visible}
   \  Sleep  10
   \  Reload Page
+  Execute Javascript  window.scrollTo(0,1100)
   Click Element  jquery=span:contains('Результати аукціону')
   Sleep  5
   Click Element  jquery=span:contains('Учасники аукціону')
@@ -1255,8 +1258,11 @@ Set Multi Ids
 
 Підтвердити постачальника
   [Arguments]  ${username}  ${tender_uaid}  ${award_num}
-  Fail    "Драйвер не реалізовано"
-  Switch browser  ${username}
+  Click Element  jquery=span:contains('Присвоїти звання переможця аукціону')
+  Click Element  jquery=span:contains('Так'):last
+  Sleep  5
+  Click Element  jquery=span:contains('Зберегти оцінку')
+  Sleep  10
 
 
 Дискваліфікувати постачальника

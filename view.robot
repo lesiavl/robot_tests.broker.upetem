@@ -331,3 +331,7 @@ Resource  upetem.robot
   ${return_value}  Get Text  id=mForm:lotDesc0
   [return]  ${return_value}
 
+Отримати інформацію про lots[0].minimalStep.amount
+  ${lotStep0}  Get Value  id=mForm:lotStep0
+  ${return_value}  Convert To Number    ${lotStep0}
+  [return]  ${return_value}

@@ -22,6 +22,11 @@ def adapt_data(data):
     return data
 
 
+def adapt_step(data, new_step):
+    data['data']['minimalStep']['amount'] = round(new_step, 2)
+    data['data']['lots'][0]['minimalStep']['amount'] = round(new_step, 2)
+
+
 def adapt_unit_name(data):
     return {
         u"наб.": u"набір",
