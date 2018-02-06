@@ -1,5 +1,6 @@
 # coding=utf-8
 
+
 def get_procurement_type_xpath(mode):
     procurement_type_xpath = {
         "belowThreshold": "//*[@id='mForm:procurementType_0']",
@@ -19,12 +20,12 @@ def get_item_xpath(field_name, item_id):
         'deliveryLocation.longitude': "//*[contains(text(), '" + item_id + "')]//ancestor::table//tr[10]/td[4]//tr[2]//input",
         'deliveryAddress.countryName': "//*[contains(text(), '" + item_id + "')]//ancestor::table//tr[7]/td[4]/span",
         'deliveryAddress.postalCode': "//*[contains(text(), '" + item_id + "')]//ancestor::table//tr[9]/td[2]/input",
-        'deliveryAddress.region': "//*[contains(text(), '" + item_id + "')]//ancestor::table//tr[8]/td[2]/input",
-        'deliveryAddress.locality': "//*[contains(text(), '" + item_id + "')]//ancestor::table//tr[8]/td[4]//input",
+        'deliveryAddress.region': "//*[contains(text(), '" + item_id + "')]//ancestor::table//tr[13]/td[2]/input",
+        'deliveryAddress.locality': "//*[contains(text(), '" + item_id + "')]//ancestor::table//tr[13]/td[4]//input",
         'deliveryAddress.streetAddress': "//*[contains(text(), '" + item_id + "')]//ancestor::table//tr[10]/td[2]/input",
         'classification.scheme': "//*[contains(text(), '" + item_id + "')]//ancestor::table//tr[3]/td[1]/label",
-        'classification.id': "//*[contains(text(), '" + item_id + "')]//ancestor::table//tr[2]/td[2]/span/input",
-        'classification.description': "//*[contains(text(), '" + item_id + "')]//ancestor::table//tr[3]/td[2]/span",
+        'classification.id': "//*[contains(text(), '" + item_id + "')]//ancestor::table//tr[3]/td[2]/span/input",
+        'classification.description': "//*[contains(text(), '" + item_id + "')]//ancestor::table//tr[4]/td[2]/span",
         'additionalClassifications.scheme': "//*[contains(text(), '" + item_id + "')]//ancestor::table//tr[3]/td[3]/label",
         'additionalClassifications.id': "//*[contains(text(), '" + item_id + "')]//ancestor::table//tr[2]/td[4]//input",
         'additionalClassifications.description': "//*[contains(text(), '" + item_id + "')]//ancestor::table//tr[3]/td[4]/span",
@@ -37,36 +38,27 @@ def get_item_xpath(field_name, item_id):
 
 def get_lot_xpath(field_name, lot_id, mode):
     if mode == 'openeu':
-        index = str(8)
+        index = '8'
     else:
-        index = str(7)
+        index = '7'
     lot_xpath = {
-	    'title': "//*[contains(@value, '" +lot_id+ "')]",
-	    'description': "//*[contains(@value, '" +lot_id+ "')]//ancestor::tbody/tr[4]/td[2]/textarea",
-	    'value.amount': "//*[contains(@value, '" +lot_id+ "')]//ancestor::tbody/tr["+index+"]/td[2]/input",
-	    'value.currency': "//*[@id='mForm:currency_label']",
-	    'minimalStep.currency': "//*[@id='mForm:currency_label']",
-	    'value.valueAddedTaxIncluded': "//*[contains(@value, '" +lot_id+ "')]//ancestor::tbody/tr[9]/td[2]//td[1]//input",
-	    'minimalStep.amount': "//*[contains(@value, '" +lot_id+ "')]//ancestor::tbody/tr["+index+"]/td[4]/input",
-	    'minimalStep.valueAddedTaxIncluded': "//*[contains(@value, '" +lot_id+ "')]//ancestor::tbody/tr[9]/td[2]//td[1]//input"
-	}
+        'title': "//*[contains(@value, '" + lot_id + "')]",
+        'description': "//*[contains(@value, '" + lot_id + "')]//ancestor::tbody/tr[4]/td[2]/textarea",
+        'value.amount': "//*[contains(@value, '" + lot_id + "')]//ancestor::tbody/tr["+index+"]/td[2]/input",
+        'value.currency': "//*[@id='mForm:currency_label']",
+        'minimalStep.currency': "//*[@id='mForm:currency_label']",
+        'value.valueAddedTaxIncluded': "//*[contains(@value, '" + lot_id + "')]//ancestor::tbody/tr[9]/td[2]//td[1]//input",
+        'minimalStep.amount': "//*[contains(@value, '" + lot_id + "')]//ancestor::tbody/tr["+index+"]/td[4]/input",
+        'minimalStep.valueAddedTaxIncluded': "//*[contains(@value, '" + lot_id + "')]//ancestor::tbody/tr[9]/td[2]//td[1]//input"
+    }
     return lot_xpath[field_name]
 
 
-#def get_feature_xpath(field_name, feature_id):
-#	xpath = {
-#	    'title': "//*[contains(@value, '" +feature_id+ "')]",
-#	    'description': "//*[contains(@value, '" +feature_id+ "')]/ancestor::tbody/tr[2]/td[2]/textarea",
-#	    'featureOf': "//*[contains(@value, '" +feature_id+ "')]/ancestor::tbody/tr[3]/td[2]//td[2]/div[1]/label"
-#	}
-#    return xpath[field_name]
-
-
 def get_document_xpath(field, doc_id):
-	doc_xpath = {
-        'title': "//*[@id='mForm:pnlFiles']//a[contains(text(), '"+ doc_id +"')]",
-	}
-	return doc_xpath[field]
+    doc_xpath = {
+        'title': "//*[@id='mForm:pnlFiles']//a[contains(text(), '" + doc_id + "')]",
+    }
+    return doc_xpath[field]
 
 
 def get_question_xpath(field_name, question_id):
@@ -79,23 +71,23 @@ def get_question_xpath(field_name, question_id):
 
 
 def get_claims_xpath(field_name):
-	claims_xpath = {
-	    'title': "//*[@id='mForm:data:title']",
-	    'description': "//*[@id='mForm:data:description']",
-	    'status': "//*[text()='Статус']//ancestor::tr/td[2]",
-	    'resolutionType': "//*[@id='mForm:data:resolutionType_label']",
-	    'resolution': "//*[@id='mForm:data:resolution']",
-	    'satisfied': "//*[@id='mForm:data:satisfied_label']",
-	    'complaintID': "//*[@id='mForm:NBid']",
-	    'cancellationReason': "//*[@id='mForm:data:cancellationReason']"
-	}
-	return claims_xpath[field_name]
+    claims_xpath = {
+        'title': "//*[@id='mForm:data:title']",
+        'description': "//*[@id='mForm:data:description']",
+        'status': "//*[text()='Статус']//ancestor::tr/td[2]",
+        'resolutionType': "//*[@id='mForm:data:resolutionType_label']",
+        'resolution': "//*[@id='mForm:data:resolution']",
+        'satisfied': "//*[@id='mForm:data:satisfied_label']",
+        'complaintID': "//*[@id='mForm:NBid']",
+        'cancellationReason': "//*[@id='mForm:data:cancellationReason']"
+    }
+    return claims_xpath[field_name]
 
 
 def get_bid_xpath(field, lot_id):
-    id = lot_id[0]
+    lot_id = lot_id[0]
     if field == 'status':
         xpath = "//*[@id='mForm:top']/div[2]/div[2]/div[1]/table//tr[5]/td[2]"
     else:
-        xpath = "(//*[contains(text(), '" + id + "')])[2]//ancestor::tbody/tr[7]/td[2]/div/input"
+        xpath = "(//*[contains(text(), '" + lot_id + "')])[2]//ancestor::tbody/tr[7]/td[2]/div/input"
     return xpath

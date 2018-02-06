@@ -10,25 +10,40 @@ TZ = pytz.timezone('Europe/Kiev')
 def adapt_data(data):
     
     data['data']['procuringEntity']['name'] = 'testuser_tender_owner'
-    data['data']['items'][0]['unit']['name'] = get_unit_name(data['data']['items'][0]['unit']['name'])
-    data['data']['items'][0]['deliveryAddress']['region'] = get_delivery_region(data['data']['items'][0]['deliveryAddress']['region'])
-    data['data']['items'][0]['deliveryAddress']['locality'] = convert_locality(data['data']['items'][0]['deliveryAddress']['locality'])
-    data['data']['items'][0]['deliveryDate']['startDate'] = adapt_delivery_date(data['data']['items'][0]['deliveryDate']['startDate'])
-    data['data']['items'][0]['deliveryDate']['endDate'] = adapt_delivery_date(data['data']['items'][0]['deliveryDate']['endDate'])
+    for x in data['data']['items']:
+        x['unit']['name'] = get_unit_name(x['unit']['name'])
+        x['deliveryAddress']['region'] = get_delivery_region(x['deliveryAddress']['region'])
+        x['deliveryAddress']['locality'] = convert_locality(x['deliveryAddress']['locality'])
+        x['deliveryDate']['startDate'] = adapt_delivery_date(x['deliveryDate']['startDate'])
+        x['deliveryDate']['endDate'] = adapt_delivery_date(x['deliveryDate']['endDate'])
+    data['data']['procuringEntity']['address']['region'] = get_delivery_region(data['data']['procuringEntity']['address']['region'])
+    data['data']['procuringEntity']['address']['locality'] = convert_locality(data['data']['procuringEntity']['address']['locality'])
+    data['data']['procuringEntity']['contactPoint']['telephone'] = data['data']['procuringEntity']['contactPoint']['telephone'][:13]
     return data
 
+
+def adapt_step(data, new_step):
+    data['data']['minimalStep']['amount'] = round(new_step, 2)
+    data['data']['lots'][0]['minimalStep']['amount'] = round(new_step, 2)
+
+
+def adapt_unit_name(data):
+    return {
+        u"наб.": u"набір",
+        u"шт.": u"штуки",
+        u"упак.": u"упаковка"
+    }.get(data, data)
+
+
 def adapt_data_view(data):
-    data['data']['items'][0]['deliveryDate']['startDate'] = adapt_delivery_date(data['data']['items'][0]['deliveryDate']['startDate'])
-    data['data']['items'][0]['deliveryDate']['endDate'] = adapt_delivery_date(data['data']['items'][0]['deliveryDate']['endDate'])
+    for x in data['data']['items']:
+        x['deliveryDate']['startDate'] = adapt_delivery_date(x['deliveryDate']['startDate'])
+        x['deliveryDate']['endDate'] = adapt_delivery_date(x['deliveryDate']['endDate'])
     return data
+
 
 def download_file(url, file_name, output_dir):
     urllib.urlretrieve(url, ('{}/{}'.format(output_dir, file_name)))
-
-
-#def download_file(url, file_name):
-#    output_dir = BuiltIn().get_variable_value("${OUTPUT_DIR}")
-#    urllib.urlretrieve(url, os.path.join(output_dir, file_name))
 
 
 def get_type_field(field):
@@ -43,20 +58,16 @@ def get_type_field(field):
             'additionalClassifications.scheme', 'additionalClassifications.description',
             'value.currency', 'minimalStep.currency', 'featureOf', 'status', 'resolutionType', 'resolution', 'satisfied', 'complaintID', 'cancellationReason']
 
-
     if field in value:
         type_fields = 'value'
     elif field in text:
         type_fields = 'text'
-
     return type_fields
                        
 
 def get_delivery_region(region):
     if region == u"місто Київ":
         delivery_region = u"м.Київ"
-    elif region == u"м.Київ":
-        delivery_region = u"місто Київ"
     elif region == u"Дніпропетровська область":
         delivery_region = u"Днiпропетровська область"
     elif region == u"Рівненська область":
@@ -64,15 +75,19 @@ def get_delivery_region(region):
     else: delivery_region = region
     return delivery_region
 
+
 def convert_float_to_string(number):
     return format(number, '.2f')
+
 
 def convert_coordinates_to_string(number):
     return format(number)
 
+
 def adapt_delivery_date(date):
     adapt_date = ''.join([date[:date.index('T') + 1], '00:00:00', date[date.index('+'):]])
     return adapt_date
+
 
 def parse_date(date_str):
     date_str = datetime.strptime(date_str, "%d.%m.%Y %H:%M")
@@ -109,30 +124,40 @@ def parse_complaintPeriod_date(date_string):
     date = TZ.localize(date).isoformat()
     return date
 
+def parse_complaintPeriod_endDate(date_str):
+    if '-' in date_str:
+        date_str = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+    else:
+        date_str = datetime.strptime(date_str, "%d.%m.%Y %H:%M")
+    date = datetime(date_str.year, date_str.month, date_str.day, date_str.hour, date_str.minute, date_str.second,
+                    date_str.microsecond)
+    date = TZ.localize(date).isoformat()
+    return date
+
 
 def capitalize_first_letter(string):
-    string = string.lower()
     string = string.capitalize()
     return string
 
 
 def get_unit_name(name):
-    value = {
-        u'штуки': u'\tшт.\t',
-        u'упаковка': u'\tупак.\t',
-        u'набір': u'\tнаб.\t',
-        u'кілограми': u'\tкг.\t'
-    }
-    value = value.get(name)
-    if value:
-        return value
-    else:
-        return name
+    return {
+        u'штуки': u'шт.',
+        u'упаковка': u'упак.',
+        u'набір': u'наб.',
+        u'кілограми': u'кг.',
+        u'лот': u'лот',
+    }.get(name, name)
 
 
 def convert_locality(name):
-    string = name.upper()
-    return string
+    if name == u"Київ":
+        adapted_name = u"М.КИЇВ"
+    elif name == u"Дніпропетровськ":
+        adapted_name = u"ДНІПРОПЕТРОВСЬКА ОБЛАСТЬ/М.ДНІПРО"
+    else:
+        adapted_name = name
+    return adapted_name.upper()
 
 
 def convert_status(tender_status):
@@ -151,29 +176,21 @@ def get_claim_status(claim_status, test_name):
         u'Вимога': 'claim',
         u'Розглянуто': 'answered',
         u'Вирішена': 'resolved',
-        u'Відхилено': 'cancelled'
+        u'Відхилено': 'cancelled',
+        u'Відхилена': 'declined',
+        u'Обробляється': 'pending',
+        u'Недійсна': 'invalid'
     }
-    status_resolved = {
-        u'Розглянуто': 'resolved',
-        u'Вирішена': 'resolved'
-    }
-    pending_status = {
-        u'Обробляється': 'pending'
-    }
-    if u'підтвердити задоволення вимоги' in test_name or 'resolved' in test_name:
-        value = status_resolved[claim_status]
-    elif u"Відображення статусу 'pending'" in test_name:
-        value = pending_status[claim_status]
-    else:
-        value = status[claim_status]
-    return value
+    return status[claim_status]
 
 
 def get_resolution_type(resolution):
-    type = {
-        u'Вирішено': 'resolved'
+    types = {
+        u'Вирішено': 'resolved',
+        u'Відхилено': 'declined',
+        u'Недійсно': 'invalid'
     }
-    return type[resolution]
+    return types[resolution]
 
 
 def convert_satisfied(value):
@@ -186,6 +203,7 @@ def convert_satisfied(value):
 
 def get_unit(field,unit_data):
     unit = unit_data.split()
+    unit[1] = adapt_unit_name(unit[1])
     unit_value = {
         'unit.code': unit[0],
         'unit.name': unit[1]
@@ -219,10 +237,11 @@ def convert_data_feature(key):
 
 
 def convert_complaintID(tender_uaid, type_complaint):
-    if type_complaint == 'tender':
-        value = tender_uaid + '.1'
-    elif type_complaint == 'lot':
-        value = tender_uaid + '.2'
+    if 'complaint_number' not in globals():
+        complaint_number = 1
+    value = '%s.a%s' % (tender_uaid, complaint_number)
+    global complaint_number
+    complaint_number += 1
     return value
 
 
@@ -256,3 +275,31 @@ def convert_bid_status(value):
         u'Недійсна пропозиція': 'invalid'
     }
     return status[value]
+
+
+def get_all_dates(initial_tender_data, key):
+    tender_period = initial_tender_data.data.tenderPeriod
+    start_dt = dateutil.parser.parse(tender_period['startDate'])
+    end_dt = dateutil.parser.parse(tender_period['endDate'])
+    data = {
+        'EndPeriod': start_dt.strftime("%d.%m.%Y %H:%M"),
+        'StartDate': start_dt.strftime("%d.%m.%Y %H:%M"),
+        'EndDate': end_dt.strftime("%d.%m.%Y %H:%M"),
+    }
+    return data.get(key, '')
+
+
+def increment_identifier(data):
+    data['data']['procuringEntity']['identifier']['id'] = str(int(data['data']['procuringEntity']['identifier']['id']) + 1)
+
+
+def convert_cause_type(key):
+    cause_type = {
+        '1': 'artContestIP',
+        '2': 'noCompetition',
+        '4': 'twiceUnsuccessful',
+        '5': 'additionalPurchase',
+        '6': 'additionalConstruction',
+        '7': 'stateLegalServices',
+    }
+    return cause_type[key]
