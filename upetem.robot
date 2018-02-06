@@ -851,7 +851,30 @@ Set Multi Ids
 
 Створити вимогу про виправлення визначення переможця
   [Arguments]  ${username}  ${tender_uaid}  ${claim}  ${award_index}  ${document}=${None}
-  upetem.Створити вимогу про виправлення умов закупівлі  ${username}  ${tender_uaid}  ${claim}  ${document}
+  upetem.Пошук тендера по ідентифікатору  ${username}  ${tender_uaid}
+  Execute Javascript  window.scrollTo(0,1100)
+  Click Element  jquery=span:contains('Результати аукціону')
+  Sleep  5
+  Click Element  jquery=span:contains('Учасники аукціону')
+  Sleep  5
+  :FOR    ${INDEX}    IN RANGE    1    12
+  \  ${visible}  Run Keyword And Return Status  Element Should Be Visible  jquery=span:contains('Перегляд оцінки')
+  \  Exit For Loop If  ${visible}
+  \  Sleep  10
+  \  Reload Page
+  Click Element  jquery=span:contains('Перегляд оцінки')
+  Sleep  5
+  Click Element  jquery=span:contains('Нова вимога')
+  Sleep  5
+  Input Text    xpath=//*[@id='mForm:data:title']    ${claim.data.title}
+  Sleep  2
+  Input Text    xpath=//*[@id='mForm:data:description']    ${claim.data.description}
+  Sleep  2
+  Run Keyword If    '${document}' != '${None}'    Choose File    xpath=//*[text()='Завантажити документ']//ancestor::div[1]//input    ${document}
+  Click Element    xpath=//span[text()='Зареєструвати']
+  Sleep  10
+  ${complaintID}  upetem_service.convert_complaintID    ${tender_uaid}    tender
+  [return]  ${complaintID}
 
 
 Завантажити документацію до вимоги
@@ -952,10 +975,9 @@ Set Multi Ids
   Sleep  30
 
 
-Підтвердження вирішення вимоги про виправлення визначення переможця
+Підтвердити вирішення вимоги про виправлення визначення переможця
   [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${confirmation_data}  ${award_index}
-  Fail    "Драйвер не реалізовано"
-  Switch browser  ${username}
+  upetem.Підтвердити вирішення вимоги про виправлення умов закупівлі  ${username}  ${tender_uaid}  ${complaintID}  ${confirmation_data}
 
 
 Скасувати вимогу про виправлення умов закупівлі
