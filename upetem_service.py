@@ -181,19 +181,6 @@ def get_claim_status(claim_status, test_name):
         u'Обробляється': 'pending',
         u'Недійсна': 'invalid'
     }
-    # status_resolved = {
-    #     u'Розглянуто': 'resolved',
-    #     u'Вирішена': 'resolved'
-    # }
-    # pending_status = {
-    #     u'Обробляється': 'pending'
-    # }
-    # if u'підтвердити задоволення вимоги' in test_name or 'resolved' in test_name:
-    #     value = status_resolved[claim_status]
-    # elif u"Відображення статусу 'pending'" in test_name:
-    #     value = pending_status[claim_status]
-    # else:
-    #     value = status[claim_status]
     return status[claim_status]
 
 
@@ -252,10 +239,7 @@ def convert_data_feature(key):
 def convert_complaintID(tender_uaid, type_complaint):
     if 'complaint_number' not in globals():
         complaint_number = 1
-    # if type_complaint == 'tender':
     value = '%s.a%s' % (tender_uaid, complaint_number)
-    # elif type_complaint == 'lot':
-    #     value = tender_uaid + '.2'
     global complaint_number
     complaint_number += 1
     return value

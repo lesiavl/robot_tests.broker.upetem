@@ -35,16 +35,10 @@ ${auction_url}
   [Arguments]  ${username}
   Wait Until Page Contains Element    xpath=//*[text()='Вхід']   30
   Click Element                      xpath=//*[text()='Вхід']
-  #Run Keyword If    '${username}' == 'upetem_Owner'    Click Element    id=mForm:j_idt118
   Wait Until Page Contains Element   id=mForm:email   20
   Input text   id=mForm:email      ${USERS.users['${username}'].login}
   Input text   id=mForm:pwd      ${USERS.users['${username}'].password}
   Click Button   id=mForm:login
-#  ${status}=   Run Keyword And Return Status   Page Should Contain Element   id=mForm:j_idt121
-#  Run Keyword if   '${status}' == 'True'
-#  ...  Run Keywords
-#  ...    Wait Until Element Is Visible  id=mForm:j_idt123  30
-#  ...    AND  Click Element  id=mForm:j_idt123
 
 
 #                                    TENDER OPERATIONS                                           #
@@ -54,7 +48,6 @@ ${auction_url}
   [Documentation]
   ...      ${ARGUMENTS[0]} ==  username
   ...      ${ARGUMENTS[1]} ==  tender_data
-  #${file_path}=        local_path_to_file   TestDocument.docx
   ${prepared_tender_data}=   Get From Dictionary    ${ARGUMENTS[1]}                       data
 
   Run Keyword If  '${mode}'=='negotiation'  Заповнити картку організації  ${ARGUMENTS[1]}
@@ -64,7 +57,6 @@ ${auction_url}
   ${lot_title}               Get From Dictionary   ${lots[0]}                             title
   ${lot_desc}                Get From Dictionary   ${lots[0]}                             description
   ${lot_value_amount}        Get From Dictionary   ${lots[0].value}                       amount
-#  ${lot_step_rate}           Get From Dictionary   ${lots[0].minimalStep}                 amount
   # line below not needed for single item tender
   ${features}=  Run Keyword If  ${tender_meat}  Get From Dictionary  ${prepared_tender_data}  features
   ${title}=                  Get From Dictionary    ${prepared_tender_data}               title
@@ -101,13 +93,10 @@ ${auction_url}
   ${cpv_id_1}=           Get Substring    ${cpv_id}   0   3
   ${mnn_id}  Run Keyword If  ${cpv_id_1}==336  Set Variable  ${items[0].additionalClassifications[0].id}
   ${dkpp_id}=        Convert To String     000
-  #${dkpp_desc}=     Get From Dictionary   ${items[0].additionalClassifications[0]}   description
-  #${dkpp_id}=       Get From Dictionary   ${items[0].additionalClassifications[0]}  id
   ${code}=           Get From Dictionary   ${items[0].unit}          code
   ${quantity}=      Get From Dictionary   ${items[0]}                        quantity
   ${name}=      Get From Dictionary   ${prepared_tender_data.procuringEntity.contactPoint}       name
   ${name_en}=  Run Keyword If  '${mode}'=='openeu'  Get From Dictionary    ${prepared_tender_data.procuringEntity.contactPoint}     name_en
-  #${procurement_type}=      Get From Dictionary   ${prepared_tender_data}   procurementMethodType
   Selenium2Library.Switch Browser     ${ARGUMENTS[0]}
   Wait Until Element Is Visible       xpath=//a[text()='Закупівлі']   10
   Click Element                       xpath=//a[text()='Закупівлі']
@@ -118,11 +107,8 @@ ${auction_url}
   Sleep  2
   ${procurement_type_xpath}=          get_xpath.get_procurement_type_xpath    ${mode}
   Click Element                       xpath=${procurement_type_xpath}
-  #Run Keyword If  '${mode}' == 'belowThreshold'  Click Element  //*[@id='mForm:procurementType_0']
   Sleep  2
   Click Element                       xpath=//*[@id="mForm:chooseProcurementTypeBtn"]
-  ###Wait Until Element Is Visible       xpath=//*[@id='mForm:j_idt96:j_idt99']  30
-  ###Click Element                       xpath=//*[@id='mForm:j_idt96:j_idt99']
   Run Keyword If  '${mode}'=='negotiation'  Wait Until Element Is Visible  jquery=.ui-icon-closethick:nth(4)
   Run Keyword If  '${mode}'=='negotiation'  Click Element  jquery=.ui-icon-closethick:nth(4)
 
@@ -132,18 +118,12 @@ ${auction_url}
   Click Element                       id=mForm:cKind_label
   Sleep  2
   Click Element                       xpath=//div[@id='mForm:cKind_panel']//li[3]
-#  Run Keyword If  '${mode}'!='negotiation'  Input text                          id=mForm:budget   ${budget}
   Input text                          id=mForm:lotBudg0   ${budget}
   Input text                          id=mForm:lotTitle0  ${lot_title}
   Input text                          id=mForm:lotDesc0   ${lot_desc}
-# Input text                          id=mForm:lotStep0   ${lot_step_rate}
   ${vat_selector}=  Set Variable If  ${NUMBER_OF_LOTS}==0  mForm:vat  mForm:lotVat0
   Run Keyword If  '${mode}'!='negotiation'  Click Element                       xpath=//*[@id='${vat_selector}']/tbody/tr/td[1]//div[2]
-#  Press Key                           id=mForm:lotStepPercent0   \\49  # workaround to properly input "1"
   ${step_selector}=  Set Variable If  ${NUMBER_OF_LOTS}==0  mForm:step  mForm:lotStep0
-#  Run Keyword If  '${mode}'!='negotiation'  Sleep  12
-#  Run Keyword If  '${mode}'!='negotiation'  Click Element  id=${step_selector}
-#  Run Keyword If  '${mode}'!='negotiation'  Sleep  3
 
   # two lines below not needed for open ua
   Run Keyword If  '${mode}'=='belowThreshold'  Input text  xpath=//*[@id="mForm:dEA_input"]  ${enquiry_period_end_date}
@@ -163,8 +143,6 @@ ${auction_url}
   Run Keyword If  ${cpv_id_1}==336   Wait Until Element Is Visible  id=mForm:lotItems0:lotItem_0:mozInn_panel
   Run Keyword If  ${cpv_id_1}==336   Click Element  xpath=//div[@id='mForm:lotItems0:lotItem_0:mozInn_panel']//td[1]
   Run Keyword If  ${cpv_id_1}!=336   Input text  id=mForm:lotItems0:lotItem_0:cDkpp_input    ${dkpp_id}
-#  Wait Until Element Is Visible       xpath=//div[@id='mForm:lotItems0:lotItem_0:cDkpp_panel']//tr[1]/td[2]/span   90
-#  Click Element                       xpath=//div[@id='mForm:lotItems0:lotItem_0:cDkpp_panel']//tr[1]/td[2]/span
   Input text                          id=mForm:lotItems0:lotItem_0:subject    ${item_description}
   Sleep  2
   Input text                          id=mForm:lotItems0:lotItem_0:unit_input    ${code}
@@ -184,8 +162,6 @@ ${auction_url}
   Input text                          xpath=//*[@id="mForm:lotItems0:lotItem_0:delAdr"]  ${item_delivery_address_street_address}
   Input text                          id=mForm:lotItems0:lotItem_0:delLoc1  ${latitude}
   Input text                          id=mForm:lotItems0:lotItem_0:delLoc2  ${longitude}
-  #Execute Javascript    $('#mForm:lotItems0:delLoc1').val('${latitude}')
-  #Execute Javascript    $('#mForm:lotItems0:delLoc2').val('${longitude}')
 
   Run Keyword If  ${lot_meat}   upetem.Додати неціновий показник на лот  ${EMPTY}  ${EMPTY}  ${features}  ${EMPTY}
   Run Keyword If  ${item_meat}  upetem.Додати неціновий показник на предмет  ${EMPTY}  ${EMPTY}  ${features}  ${EMPTY}
@@ -207,8 +183,6 @@ ${auction_url}
   ${cause_description}  Run Keyword If  '${mode}' == 'negotiation'  Get From Dictionary    ${prepared_tender_data}    causeDescription
   Run Keyword If  '${mode}' == 'negotiation'  Input Text  id=mForm:cause_description  ${cause_description}
 
-  #  Input text                          id=mForm:data:stepPercent  1
-  #  Завантажити документ до тендеру  ${file_path}
   Sleep  2
   Run Keyword if   '${mode}' == 'negotiation'  upetem.Додати предмет закупівлі в лот  ${items}
   Run Keyword If  '${mode}'!='negotiation'  Input text  id=${step_selector}  ${step_rate}
@@ -220,8 +194,6 @@ ${auction_url}
   Log  ${ARGUMENTS[1]}
   # Save
   Click Element                       xpath=//*[@id="mForm:bSave"]
-#  Wait Until Element Is Visible  id=notifyMess
-#  Wait Until Element Is Not Visible  id=notifyMess
 
   Wait Until Element Is Visible       xpath=//div[contains(@class, "ui-confirm-dialog") and @aria-hidden="false"]//span[text()='Так']  30
   Click Element                       xpath=//div[contains(@class, "ui-confirm-dialog") and @aria-hidden="false"]//span[text()='Так']
@@ -270,7 +242,6 @@ ${auction_url}
 Оновити сторінку з тендером
   [Arguments]  ${username}  ${tender_uaid}
   Selenium2Library.Switch Browser    ${username}
-#  upetem.Пошук тендера по ідентифікатору    ${username}   ${tender_uaid}
   Reload Page
 
 
@@ -326,7 +297,6 @@ Set Multi Ids
 
 Отримати інформацію із документа
   [Arguments]  ${username}  ${tender_uaid}  ${doc_id}  ${field}
-  #Sleep  250
   Switch browser   ${username}
   upetem.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
   ${field_xpath}=  get_xpath.get_document_xpath  ${field}  ${doc_id}
@@ -400,12 +370,9 @@ Set Multi Ids
 Отримати інформацію із предмету
   [Arguments]  ${username}  ${tender_uaid}  ${item_id}  ${field_name}
   Switch browser    ${username}
-  #Run Keyword If    '${TEST_NAME}' == 'Відображення опису номенклатури у новому лоті'    Sleep  45
   Run Keyword If    '${TEST_NAME}' == 'Відображення опису номенклатури у новому лоті'    subkeywords.Switch new lot    ${username}  ${tender_uaid}
   Run Keyword If    '${TEST_NAME}' == 'Відображення опису нової номенклатури'    upetem.Пошук тендера по ідентифікатору    ${username}  ${tender_uaid}
   Run Keyword If    '${TEST_NAME}' == 'Відображення опису нової номенклатури'    Wait Until Keyword Succeeds  300 s  30s  subkeywords.Wait For NewItem    ${item_id}
-  #${status}=    Run Keyword And Return Status    Page Should Contain Element    xpath=//*[contains(text(), '${item_id}')]
-  #Run Keyword if    '${status}' == 'False'    Click Element    xpath=//*[@id='lotTabButton_2']
   Sleep  5
   ${value}=    subkeywords.Отримати дані з поля item    ${field_name}  ${item_id}
   ${value}=    subkeywords.Адаптувати дані з поля item    ${field_name}  ${value}
@@ -591,7 +558,6 @@ Set Multi Ids
   Sleep  1
   Click Element  jquery=span:contains('Додати показник'):nth(1)
   Sleep  3
-#  Execute Javascript  document.getElementById("mForm:lotItems0:meatDataLot0").scrollIntoView(false)
   Execute Javascript  window.scrollTo(0,4300)
   Input Text  xpath=//div[@id='mForm:lotItems0:meatDataLot0']/table[${num}]//input  ${f_var.title}
   Input Text  xpath=//div[@id='mForm:lotItems0:meatDataLot0']/table[${num}]//textarea  ${f_var.description}
@@ -745,7 +711,6 @@ Set Multi Ids
   upetem.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
   Wait Until Element Is Visible    xpath=//*[@id="mForm:status"]   60
   ${tender_status}=    Get Text    xpath=//*[@id="mForm:status"]
-#  Run Keyword If  '${tender_status}' != 'Період уточнень'    Fail    "Період уточнень закінчився"
   Click Element                      xpath=//span[./text()='Обговорення']
   Sleep  3
   Click Element                      xpath=//span[contains(text(), '${question_id}')]/ancestor::div[@id='mForm:data_content']//button
@@ -810,9 +775,6 @@ Set Multi Ids
   Sleep  2
   Click Element    xpath=//span[text()='Нова вимога']
   Sleep  5
-  #Wait Until Element Is Visible    xpath=//span[text()='Обрати']    30
-#  Run Keyword If    '${TEST_NAME}' != 'Можливість створити і подати вимогу про виправлення умов лоту'    Click Element    xpath=//span[text()='Обрати']
-  Sleep  2
   Input Text    xpath=//*[@id='mForm:data:title']    ${claim.data.title}
   Sleep  2
   Input Text    xpath=//*[@id='mForm:data:description']    ${claim.data.description}
@@ -915,7 +877,6 @@ Set Multi Ids
   \  Exit For Loop If  ${complaint is visible}
   \  Sleep  15
   \  Reload Page
-#  Execute Javascript  window.scrollTo(0,0)
   Click Element  xpath=(//td/a[@id='mForm:data:0:NBid']/ancestor::tr/td/a)[1]
   Wait Until Element Is Visible  id=mForm:data:resolutionType_label
   Click Element  id=mForm:data:resolutionType_label
@@ -1036,8 +997,6 @@ Set Multi Ids
   upetem.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
   Run Keyword If    '${mode}' != 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та скарги']
   Run Keyword If    '${mode}' == 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги']
-  #Click Element    xpath=//*[text()='Вимоги та скарги']
-  #Wait Until Element Is Visible    xpath=//*[@id='mForm:data_data']/tr/td[1]/a    30
   Run Keyword If    "${TEST_NAME}" == "Відображення опису вимоги"    Wait Until Keyword Succeeds  300 s  10 s  subkeywords.Wait For ClaimTender
   Run Keyword If    "${TEST_NAME}" == "Відображення опису вимоги про виправлення умов закупівлі"    Wait Until Keyword Succeeds  300 s  10 s  subkeywords.Wait For ClaimTender
   Run Keyword If    "${TEST_NAME}" == "Відображення опису вимоги про виправлення умов лоту"    Wait Until Keyword Succeeds  300 s  10 s  subkeywords.Wait For ClaimLot
@@ -1065,7 +1024,6 @@ Set Multi Ids
 Отримати інформацію із документа до скарги
   [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${doc_id}  ${field_name}  ${award_id}=${None}
   upetem.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
-  #Click Element    xpath=//*[text()='Вимоги та скарги']
   Run Keyword If    '${mode}' != 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та скарги']
   Run Keyword If    '${mode}' == 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги']
   Wait Until Element Is Visible    xpath=//*[@id='mForm:data_data']/tr/td[1]/a    30
@@ -1078,7 +1036,6 @@ Set Multi Ids
 Отримати документ до скарги
   [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${doc_id}  ${award_id}=${None}
   upetem.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
-  #Click Element    xpath=//*[text()='Вимоги та скарги']
   Run Keyword If    '${mode}' != 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та скарги']
   Run Keyword If    '${mode}' == 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги']
   Wait Until Element Is Visible    xpath=//*[@id='mForm:data_data']/tr/td[1]/a    30
@@ -1117,8 +1074,6 @@ Set Multi Ids
   Click Element  xpath=//*[text()='Зареєструвати пропозицію']
   Wait Until Element Is Visible    xpath=//*[@id='mForm:cdPay']    60
   Click Element    xpath=//*[@id='mForm:cdPay']/div[2]/table//tr[6]/td//tr[2]/td/div
-#  Sleep  2
-#  Click Element    xpath=(//li[contains(text(), "${USERS.users['${username}'].login}")])[2]
   Sleep  2
   Click Element  xpath=(//*[text()='Зареєструвати пропозицію'])[2]
   Wait Until Element Is Visible    //*[@id='mForm:data']/div[1]/table/tbody/tr[5]/td[2]    90
@@ -1164,8 +1119,6 @@ Set Multi Ids
   Execute JavaScript                  window.scrollTo(0, 1000)
   Sleep  2
   Click Element    xpath=//a[contains(text(), '${doc_id}')]//ancestor::tr/td[6]/button[1]/span[1]
-#  Sleep  2
-#  Click Element  css=.ui-confirmdialog-yes.ui-button-text-only
   Sleep  10
   Choose File       xpath=//*[@id='mForm:data:tFile_input']    ${path}
   Wait Until Element Is Visible    xpath=//*[@id='mForm:docCard:dcType_label']    60
@@ -1210,11 +1163,8 @@ Set Multi Ids
   [Arguments]  ${username}  ${tender_uaid}  ${lot_id}=${Empty}
   Selenium2Library.Switch Browser    ${username}
   upetem.Пошук тендера по ідентифікатору  ${username}  ${tender_uaid}
-  #Page Should Contain Element  xpath=//*[text()='Перегляд аукціону']
-  #Wait Until Element Is Visible    xpath=//*[contains(text(), '${lot_id}')]//ancestor::div[2]/div[2]/button[1]
   Wait Until Element Is Visible    xpath=//*[contains(@onclick, 'https://auction-sandbox.openprocurement.org/tenders/')]    30
   Sleep  2
-  #${url}=    Get Element Attribute    xpath=//*[contains(text(), '${lot_id}')]//ancestor::div[2]/div[2]/button[1]@href
   ${auction_url}=    Get Element Attribute    xpath=//*[contains(@onclick, 'https://auction-sandbox.openprocurement.org/tenders/')]@onclick
   ${url}=    Get Substring    ${auction_url}    13    97
   [return]  ${url}

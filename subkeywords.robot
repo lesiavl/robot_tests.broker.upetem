@@ -210,16 +210,11 @@ Switch new lot
   \  ${feature_of}=    Get Text    xpath=//*[contains(text(), '${feature_id}')]//ancestor::tbody/tr[2]/td[2]/label
   \  ${pos}=    upetem_service.get_pos    ${feature_of}
   \  ${value}=    upetem_service.get_value_feature    ${bid.data.parameters[${index}]['value']}
-#  \  ${value}=    Convert To String    ${value}
-#  \  Run Keyword If    '${feature_of}' == 'Закупівлі'    Execute JavaScript   window.scrollTo(0, 100)
-#  \  Run Keyword If    '${feature_of}' == 'Предмету лоту'    Execute JavaScript   window.scrollTo(0, 2100)
   \  ${dropdown_id}=	 Get Element Attribute	xpath=//*[contains(text(), '${feature_id}')]//ancestor::tbody/tr[4]/td[2]/div@id
   \  Execute Javascript  document.getElementById("${dropdown_id}").scrollIntoView(false)
   \  Click Element    id=${dropdown_id}
   \  Sleep  3
   \  Click Element    xpath=//ul[@id="${dropdown_id}_items"]/li[contains(text(), "${value}")]
-#  \  Wait Until Element Is Visible    xpath=//*[contains(text(), '${feature_id}')]//ancestor::tbody/tr[4]/td[2]/div//select    30
-#  \  Select From List By Value    xpath=//*[contains(text(), '${feature_id}')]//ancestor::tbody/tr[4]/td[2]/div//select    ${value}
 
 
 Отримати дані з bid below

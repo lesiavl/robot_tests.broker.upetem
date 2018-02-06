@@ -16,8 +16,6 @@ Resource  upetem.robot
   [return]  ${return_value}
 
 Отримати інформацію про value.amount
-#  ${value}=    Run Keyword If    '${mode}' == 'belowThreshold'    Get Text    xpath=//*[@id='mForm:budgetL']
-#  ...          ELSE IF           '${mode}' != 'belowThreshold'    Get Text     xpath=//*[@id='mForm:budget']
   ${value}=    Get Text    xpath=//*[@id='mForm:budgetL']
   ${return_value}=   Convert To Number   ${value}
   [return]  ${return_value}
@@ -55,7 +53,6 @@ Resource  upetem.robot
   ${value_below}=    Get Value    xpath=//*[@id="mForm:dEA_input"]
   ${return_value}=    Set Variable If    '${type_tender}' != 'Допорогові закупівлі'    ${value_open}
   ...                                '${type_tender}' == 'Допорогові закупівлі'    ${value_below}
-  #${return_value}=  Get Value           xpath=//*[@id="mForm:dEA_input"]
   ${return_value}=  upetem_service.parse_date  ${return_value}
   [return]  ${return_value}
 
@@ -93,7 +90,6 @@ Resource  upetem.robot
   Run Keyword If    '${TEST_NAME}' == 'Неможливість задати запитання на тендер після закінчення періоду уточнень'    Sleep  30
   Run Keyword If    '${TEST_NAME}' == 'Неможливість задати запитання на тендер після закінчення періоду уточнень'    Reload Page
   Run Keyword If    '${TEST_NAME}' == 'Можливість вичитати посилання на аукціон для глядача'    Reload Page
-  #Run Keyword If    '${TEST_NAME}' == 'Неможливість задати запитання на тендер після закінчення періоду уточнень'  Wait Until Keyword Succeeds  480 s  20 s  subkeywords.Wait For EndEnquire
   Run Keyword If    '${TEST_NAME}' == 'Можливість подати пропозицію першим учасником'      Wait Until Keyword Succeeds    480 s    20 s    subkeywords.Wait For TenderPeriod
   ${return_value}=    Get Text    xpath=//*[@id='mForm:status']
   ${return_value}=    upetem_service.convert_status    ${return_value}
@@ -110,7 +106,6 @@ Resource  upetem.robot
   [return]  ${return_value}
 
 Отримати інформацію про items[0].deliveryDate.endDate
-#  ${return_value}=  Get Value           xpath=//*[@id="mForm:bidItem_0:item0"]/tbody/tr[5]/td[4]/input
   ${return_value}  Get Value  xpath=//*[@id="mForm:lotItems0:lotItem_0:item0"]/tbody/tr[10]/td[4]/input
   ${return_value}=  upetem_service.parse_item_date  ${return_value}
   [return]  ${return_value}
@@ -165,10 +160,7 @@ Resource  upetem.robot
   [return]  ${return_value}
 
 Отримати інформацію про items[0].additionalClassifications[0].scheme
-#  ${return_value}=  Get Text           xpath=(//*[@id="mForm:bidItem_0:item0"]/tbody/tr[3]/td[3]/label)[2]
   ${return_value}=  Get Text   xpath=(//*[@id="mForm:lotItems0:lotItem_0:item0"]/tbody/tr[2]//label)[2]
-#  ${return_value}=  Get Substring  ${return_value}  36  40
-#  ${return_value}=  Convert To String  ${return_value}
   [return]  ${return_value}
 
 Отримати інформацію про items[0].additionalClassifications[0].id
@@ -281,8 +273,6 @@ Resource  upetem.robot
   Подивитись на учасників
   ${status}  Get Text  id=mForm:tabs:award_status_label
   ${return_value}  Set Variable If  '${status}'=='Закупівлю виграв учасник'  active  other status
-#  Click Element  id=mForm:tabs:nBid
-#  Wait Until Element Is Visible  id=mForm:nBid
   [return]  ${return_value}
 
 Отримати інформацію про awards[0].suppliers[0].contactPoint.telephone
