@@ -335,6 +335,10 @@ Switch new lot
   Click Element  jquery=span:contains('Зберегти')
   Sleep  5
 
-
-
-
+Ввести МНН код для всіх предметів
+  [Arguments]  ${items}
+  :FOR  ${index}  IN RANGE  ${NUMBER_OF_ITEMS}
+  \  ${mnn_id}  Set Variable  ${items[${index}].additionalClassifications[0].id}
+  \  Input Text  id=mForm:lotItems0:lotItem_${index}:mozInn_input  ${mnn_id}
+  \  Wait Until Element Is Visible  id=mForm:lotItems0:lotItem_${index}:mozInn_panel
+  \  Click Element  xpath=//div[@id='mForm:lotItems0:lotItem_${index}:mozInn_panel']//td[1]
