@@ -91,7 +91,6 @@ ${auction_url}
   ${longitude}=  upetem_service.convert_coordinates_to_string    ${longitude}
   ${cpv_id}=           Get From Dictionary   ${items[0].classification}         id
   ${cpv_id_1}=           Get Substring    ${cpv_id}   0   3
-  ${mnn_id}  Run Keyword If  ${cpv_id_1}==336  Set Variable  ${items[0].additionalClassifications[0].id}
   ${dkpp_id}=        Convert To String     000
   ${code}=           Get From Dictionary   ${items[0].unit}          code
   ${quantity}=      Get From Dictionary   ${items[0]}                        quantity
@@ -139,9 +138,6 @@ ${auction_url}
   Wait Until Element Is Visible       xpath=//div[@id='mForm:lotItems0:lotItem_0:cCpv_panel']//td[1]/span   90
   Click Element                       xpath=//div[@id='mForm:lotItems0:lotItem_0:cCpv_panel']//td[1]/span
   Sleep  2
-  Run Keyword If  ${cpv_id_1}==336   Input Text  id=mForm:lotItems0:lotItem_0:mozInn_input  ${mnn_id}
-  Run Keyword If  ${cpv_id_1}==336   Wait Until Element Is Visible  id=mForm:lotItems0:lotItem_0:mozInn_panel
-  Run Keyword If  ${cpv_id_1}==336   Click Element  xpath=//div[@id='mForm:lotItems0:lotItem_0:mozInn_panel']//td[1]
   Run Keyword If  ${cpv_id_1}!=336   Input text  id=mForm:lotItems0:lotItem_0:cDkpp_input    ${dkpp_id}
   Input text                          id=mForm:lotItems0:lotItem_0:subject    ${item_description}
   Sleep  2
@@ -186,12 +182,11 @@ ${auction_url}
   Sleep  2
   Run Keyword if   '${mode}' == 'negotiation'  upetem.Додати предмет закупівлі в лот  ${items}
   Run Keyword If  '${mode}'!='negotiation'  Input text  id=${step_selector}  ${step_rate}
+  Run Keyword If  ${cpv_id_1}==336   Ввести МНН код для всіх предметів  ${items}
   Sleep  5
-  ${calculated_step}  Get Value  id=mForm:lotStepPercent0
-  ${updated_step}  Evaluate  ${prepared_tender_data.value.amount}*${calculated_step}/100
-  Log  ${ARGUMENTS[1]}
+  ${calculated_step}  Run Keyword If  '${mode}' == 'openeu'  Get Value  id=mForm:lotStepPercent0
+  ${updated_step}  Run Keyword If  '${mode}' == 'openeu'  Evaluate  ${prepared_tender_data.value.amount}*${calculated_step}/100
   Run Keyword If  '${mode}' == 'openeu'  upetem_service.adapt_step  ${ARGUMENTS[1]}  ${updated_step}
-  Log  ${ARGUMENTS[1]}
   # Save
   Click Element                       xpath=//*[@id="mForm:bSave"]
 
