@@ -266,7 +266,7 @@ Resource  upetem.robot
 
 Отримати інформацію про awards[0].documents[0].title
   Подивитись на учасників
-  ${title}  Get Text  id=mForm:tabs:j_idt310:j_idt311:0:grid2
+  ${title}  Get Text  xpath=//div[@id='mForm:tabs:pnlFilesT']//a
   [return]  ${title}
 
 Отримати інформацію про awards[0].status
