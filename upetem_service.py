@@ -72,6 +72,8 @@ def get_delivery_region(region):
         delivery_region = u"Днiпропетровська область"
     elif region == u"Рівненська область":
         delivery_region = u"Рiвненська область"
+    elif region == u"Чернігівська область":
+        delivery_region = u"Чернiгiвська область"
     else: delivery_region = region
     return delivery_region
 
@@ -147,6 +149,7 @@ def get_unit_name(name):
         u'набір': u'наб.',
         u'кілограми': u'кг.',
         u'лот': u'лот',
+        u'флакон': u'флак.'
     }.get(name, name)
 
 

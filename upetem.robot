@@ -39,6 +39,7 @@ ${auction_url}
   Input text   id=mForm:email      ${USERS.users['${username}'].login}
   Input text   id=mForm:pwd      ${USERS.users['${username}'].password}
   Click Button   id=mForm:login
+  Wait Until Page Contains Element  css=div.cabinet-user-name
 
 
 #                                    TENDER OPERATIONS                                           #

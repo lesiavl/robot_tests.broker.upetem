@@ -325,3 +325,7 @@ Resource  upetem.robot
   ${lotStep0}  Get Value  id=mForm:lotStep0
   ${return_value}  Convert To Number    ${lotStep0}
   [return]  ${return_value}
+
+Отримати інформацію про features[3].title
+  ${return_value}  Get Value  xpath=//div[@id='mForm:lotItems0:meatDataLot0']/table[2]/tbody/tr[1]/td[2]
+  [return]  ${return_value}
