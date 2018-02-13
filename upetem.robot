@@ -33,6 +33,7 @@ ${auction_url}
 
 Вхід
   [Arguments]  ${username}
+  Set Selenium Timeout  60
   Wait Until Page Contains Element    xpath=//*[text()='Вхід']
   Click Element                      xpath=//*[text()='Вхід']
   Wait Until Page Contains Element   id=mForm:email
