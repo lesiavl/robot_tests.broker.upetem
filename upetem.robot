@@ -278,11 +278,14 @@ ${auction_url}
   Click Element                    xpath=//*[@id="mForm:docCard:docCard"]/table/tfoot/tr/td/button[1]
   Sleep  20
   Input text                       id=mForm:docAdjust     Test text
-  Sleep  5
+  Sleep  20
   Click Element                    xpath=//*[@id="mForm:bSave"]
   Wait Until Element Is Visible    xpath=(//*[@id="primefacesmessagedlg"]/div/a)[1]
+  Sleep  20
   Click Element                    xpath=(//*[@id="primefacesmessagedlg"]/div/a)[1]
-  Sleep  5
+  Sleep  10
+  Reload Page
+  Sleep  10
 
 
 Set Multi Ids
@@ -493,13 +496,17 @@ Set Multi Ids
     Click Element  xpath=//div[@id="mForm:docCard:docCard"]//tr[7]//td[2]//li[contains(.,"${lot_id}")]
     Sleep  3
     Click Element                    xpath=//*[@id="mForm:docCard:docCard"]/table/tfoot/tr/td/button[1]
-    Sleep  10
+    Sleep  20
     Input text                       id=mForm:docAdjust     Додано тестовий документ для лоту
-    Sleep  3
+    Sleep  20
     Click Element                    xpath=//*[@id="mForm:bSave"]
+    Sleep  20
     Wait Until Element Is Visible    xpath=(//*[@id="primefacesmessagedlg"]/div/a)[1]
+    Sleep  10
     Click Element                    xpath=(//*[@id="primefacesmessagedlg"]/div/a)[1]
-    Sleep  3
+    Sleep  10
+    Reload Page
+    Sleep  10
 
 
 Видалити лот
