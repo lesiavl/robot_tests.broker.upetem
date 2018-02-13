@@ -310,12 +310,12 @@ Switch new lot
   Wait Until Element Is Visible  jquery=span:contains('Додати мову')
   Click Element  jquery=span:contains('Додати мову')
   Click Element  jquery=span:contains('English')
-  Input Text  id=mForm:j_idt269:j_idt321  ${description_en}
-  Input Text  id=mForm:j_idt269:j_idt335  ${title_en}
-  Input Text  id=mForm:j_idt269:j_idt350  ${name_en}
-  Input Text  id=mForm:j_idt269:j_idt364  ${lots[0].title_en}
-  Input Text  id=mForm:j_idt269:j_idt378  opys lotu nomer odin
-  Input Text  id=mForm:j_idt269:j_idt391  ${items[0].description_en}
+  Input Text  xpath=//tbody/tr[1]/td[3]/textarea   ${description_en}
+  Input Text  xpath=//tbody/tr[3]/td[3]/textarea   ${title_en}
+  Input Text  xpath=//tbody/tr[5]/td[3]/input      ${name_en}
+  Input Text  xpath=//tbody/tr[7]/td[3]/input      ${lots[0].title_en}
+  Input Text  xpath=//tbody/tr[9]/td[3]/input      opys lotu nomer odin
+  Input Text  xpath=//tbody/tr[11]/td[3]/textarea  ${items[0].description_en}
   # features 0
   Input Text  xpath=//tbody/tr[15]/td[3]/input  ${features[0].title_en}
   Input Text  xpath=//tbody/tr[19]/td[3]/input  ${features[0].enum[0].title}
