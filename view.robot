@@ -101,7 +101,7 @@ Resource  upetem.robot
   [return]  ${return_value}
 
 Отримати інформацію про items[0].deliveryDate.startDate
-  ${return_value}=  Get Value           xpath=//*[@id="mForm:bidItem_0:item0"]/tbody/tr[4]/td[4]/input
+  ${return_value}=  Get Value  xpath=//*[@id="mForm:lotItems0:lotItem_0:item0"]//tr[9]/td[4]/input
   ${return_value}=  upetem_service.parse_item_date  ${return_value}
   [return]  ${return_value}
 
@@ -116,11 +116,11 @@ Resource  upetem.robot
   [return]  ${return_value}
 
 Отримати інформацію про items[0].deliveryLocation.latitude
-  ${return_value}=  Get Value           xpath=//*[@id="mForm:bidItem_0:delLoc1"]
+  ${return_value}=  Get Value           xpath=//*[@id="mForm:lotItems0:lotItem_0:delLoc1"]
   Run Keyword And Return  Convert To Number  ${return_value}
 
 Отримати інформацію про items[0].deliveryLocation.longitude
-  ${return_value}=  Get Value           xpath=//*[@id="mForm:bidItem_0:delLoc2"]
+  ${return_value}=  Get Value           xpath=//*[@id="mForm:lotItems0:lotItem_0:delLoc2"]
   Run Keyword And Return  Convert To Number  ${return_value}
 
 Отримати інформацію про items[0].deliveryAddress.countryName
