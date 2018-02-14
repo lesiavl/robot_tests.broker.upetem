@@ -309,7 +309,9 @@ Switch new lot
   [Arguments]  ${description_en}  ${title_en}  ${name_en}  ${lots}  ${items}  ${features}
   Wait Until Element Is Visible  jquery=span:contains('Додати мову')
   Click Element  jquery=span:contains('Додати мову')
+  Sleep  5
   Click Element  jquery=span:contains('English')
+  Sleep  5
   Input Text  xpath=//tbody/tr[1]/td[3]/textarea   ${description_en}
   Input Text  xpath=//tbody/tr[3]/td[3]/textarea   ${title_en}
   Input Text  xpath=//tbody/tr[5]/td[3]/input      ${name_en}

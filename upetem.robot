@@ -186,7 +186,7 @@ ${auction_url}
   Run Keyword if   '${mode}' == 'negotiation'  upetem.Додати предмет закупівлі в лот  ${items}
   Run Keyword If  '${mode}'!='negotiation'  Input text  id=${step_selector}  ${step_rate}
   Run Keyword If  ${cpv_id_1}==336   Ввести МНН код для всіх предметів  ${items}
-  Sleep  5
+  Sleep  10
   ${calculated_step}  Run Keyword If  '${mode}' == 'openeu'  Get Value  id=mForm:lotStepPercent0
   ${updated_step}  Run Keyword If  '${mode}' == 'openeu'  Evaluate  ${prepared_tender_data.value.amount}*${calculated_step}/100
   Run Keyword If  '${mode}' == 'openeu'  upetem_service.adapt_step  ${ARGUMENTS[1]}  ${updated_step}
@@ -595,8 +595,6 @@ Set Multi Ids
   Sleep  1
   Click Element  xpath=//div[@id='mForm:lotItems0']//span[text()='Додати показник']
   Sleep  10
-  Execute Javascript  document.getElementById("mForm:lotItems0:meatDataLot0").scrollIntoView(false)
-  Sleep  1
   ${iter_items}  Set Variable If  '${TEST_NAME}' == 'Можливість додати неціновий показник на перший лот'  ${features}  ${features[0]}
   ${num}  Set Variable If  '${TEST_NAME}' == 'Можливість додати неціновий показник на перший лот'  3  1
   Wait Until Page Contains Element  xpath=(//div[@id='mForm:lotItems0:meatDataLot0']//input[contains(@id,'meatTitle')])[${num}]
