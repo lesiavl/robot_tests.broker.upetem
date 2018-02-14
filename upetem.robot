@@ -591,7 +591,10 @@ Set Multi Ids
 
 Додати неціновий показник на лот
   [Arguments]  ${username}  ${tender_uaid}  ${features}  ${lot_id}
+  Execute Javascript  window.scrollTo(0,3300)
+  Sleep  1
   Click Element  xpath=//div[@id='mForm:lotItems0']//span[text()='Додати показник']
+  Sleep  10
   Execute Javascript  document.getElementById("mForm:lotItems0:meatDataLot0").scrollIntoView(false)
   Sleep  1
   ${iter_items}  Set Variable If  '${TEST_NAME}' == 'Можливість додати неціновий показник на перший лот'  ${features}  ${features[0]}
