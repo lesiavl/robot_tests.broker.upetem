@@ -140,10 +140,10 @@ ${auction_url}
   Input text                          id=mForm:lotItems0:lotItem_0:cCpv_input   ${cpv_id}
   Wait Until Element Is Visible       xpath=//div[@id='mForm:lotItems0:lotItem_0:cCpv_panel']//td[1]/span
   Click Element                       xpath=//div[@id='mForm:lotItems0:lotItem_0:cCpv_panel']//td[1]/span
-  Sleep  2
+  Sleep  5
   Run Keyword If  ${cpv_id_1}!=336   Input text  id=mForm:lotItems0:lotItem_0:cDkpp_input    ${dkpp_id}
   Input text                          id=mForm:lotItems0:lotItem_0:subject    ${item_description}
-  Sleep  2
+  Sleep  5
   Input text                          id=mForm:lotItems0:lotItem_0:unit_input    ${code}
   Wait Until Element Is Visible       xpath=//div[@id='mForm:lotItems0:lotItem_0:unit_panel']//tr/td[1]
   Click Element                       xpath=//div[@id='mForm:lotItems0:lotItem_0:unit_panel']//tr/td[1]
@@ -151,9 +151,9 @@ ${auction_url}
   Input Text                          xpath=//*[@id='mForm:lotItems0:lotItem_0:delDS_input']  ${delivery_start_date}
   Input text                          xpath=//*[@id="mForm:lotItems0:lotItem_0:delDE_input"]  ${delivery_end_date}
   Click Element                       xpath=//*[@id="mForm:lotItems0:lotItem_0:cReg"]/div[3]
-  Sleep  2
+  Sleep  5
   Click Element                       xpath=//ul[@id='mForm:lotItems0:lotItem_0:cReg_items']/li[text()='${item_delivery_region}']
-  Sleep  2
+  Sleep  5
   Wait Until Keyword Succeeds  3x  1  Input Text  xpath=//*[@id="mForm:lotItems0:lotItem_0:cTer_input"]    ${item_locality}
   Wait Until Element Is Visible       xpath=//*[@id='mForm:lotItems0:lotItem_0:cTer']//td[1]
   Press Key                           //*[@id="mForm:lotItems0:lotItem_0:cTer_input"]    \\13
@@ -233,6 +233,7 @@ ${auction_url}
   \  Exit For Loop If  ${found}
   \  Sleep  10
   \  Click Element  id=mForm:search_button
+  Sleep  5
   Wait Until Keyword Succeeds  3x  1  Click Element    xpath=//a[text()='${ARGUMENTS[1]}']/ancestor::div[1]/span[2]/a
   Wait Until Page Contains Element  id=mForm:nBid
 
