@@ -329,3 +329,13 @@ Resource  upetem.robot
 Отримати інформацію про features[3].title
   ${return_value}  Get Value  xpath=//div[@id='mForm:lotItems0:meatDataLot0']/table[2]/tbody/tr[1]/td[2]
   [return]  ${return_value}
+
+Отримати інформацію про qualifications[0].status
+  Click Element  jquery=span:contains('Кваліфікація учасників')
+  Wait Until Page Contains Element  id=mForm:qualificationData
+  ${return_value}  Get Text  xpath=(//table)[1]//tr[2]/td[2]/span
+  [return]  ${return_value}
+
+Отримати інформацію про qualifications[1].status
+  ${return_value}  Get Text  xpath=(//table)[6]//tr[2]/td[2]/span
+  [return]  ${return_value}
