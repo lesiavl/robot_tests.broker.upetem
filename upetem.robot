@@ -981,10 +981,13 @@ Set Multi Ids
 Скасувати вимогу про виправлення визначення переможця
   [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${cancellation_data}  ${award_index}
   upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
+  Sleep  10
   Click Element    xpath=//span[text()='Вимоги']
-  Sleep  2
+  Sleep  10
+  Reload Page
+  Sleep  10
   Click Element    xpath=(//*[@id='mForm:data_data']/tr/td[1]/a)[1]
-  Sleep  2
+  Sleep  5
   Input Text    xpath=//*[@id='mForm:data:cancellationReason']    ${cancellation_data.data.cancellationReason}
   Execute JavaScript  window.scrollTo(0,0)
   Click Element    xpath=//*[text()='Відмінити вимогу']
