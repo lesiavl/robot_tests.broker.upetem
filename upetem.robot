@@ -739,7 +739,7 @@ Set Multi Ids
   [Arguments]  ${username}  ${tender_uaid}  ${claim}
   upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
   Click Element    xpath=//*[text()='Вимоги']
-  Sleep  2
+  Sleep  5
   Click Element    xpath=//span[text()='Нова вимога']
   Sleep  2
   Input Text    xpath=//*[@id='mForm:data:title']    ${claim.data.title}
@@ -755,7 +755,7 @@ Set Multi Ids
   [Arguments]  ${username}  ${tender_uaid}  ${claim}  ${lot_id}
   upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
   Click Element    xpath=//*[text()='Вимоги']
-  Sleep  2
+  Sleep  5
   Click Element    xpath=//span[text()='Нова вимога']
   Sleep  2
   Input Text    xpath=//*[@id='mForm:data:title']    ${claim.data.title}
@@ -775,8 +775,7 @@ Set Multi Ids
 
 Створити чернетку вимоги про виправлення визначення переможця
   [Arguments]  ${username}  ${tender_uaid}  ${claim}  ${award_index}
-  Fail    "Драйвер не реалізовано"
-  Switch browser    ${username}
+  Run Keyword And Return  upetem.Створити вимогу про виправлення визначення переможця  ${username}  ${tender_uaid}  ${claim}  ${award_index}
 
 
 Створити вимогу про виправлення умов закупівлі
@@ -784,7 +783,7 @@ Set Multi Ids
   upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
   Run Keyword If    '${mode}' != 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та скарги']
   Run Keyword If    '${mode}' == 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги']
-  Sleep  2
+  Sleep  5
   Click Element    xpath=//span[text()='Нова вимога']
   Sleep  5
   Input Text    xpath=//*[@id='mForm:data:title']    ${claim.data.title}
@@ -806,7 +805,7 @@ Set Multi Ids
   upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
   Run Keyword If    '${mode}' != 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги та скарги']
   Run Keyword If    '${mode}' == 'belowThreshold'    Click Element    xpath=//*[text()='Вимоги']
-  Sleep  2
+  Sleep  5
   Click Element    xpath=//span[text()='Нова вимога']
   Sleep  5
   Input Text    xpath=//*[@id='mForm:data:title']    ${claim.data.title}
@@ -981,8 +980,18 @@ Set Multi Ids
 
 Скасувати вимогу про виправлення визначення переможця
   [Arguments]  ${username}  ${tender_uaid}  ${complaintID}  ${cancellation_data}  ${award_index}
-  Fail    "Драйвер не реалізовано"
-  Switch browser  ${username}
+  upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
+  Sleep  10
+  Click Element    xpath=//span[text()='Вимоги']
+  Sleep  10
+  Reload Page
+  Sleep  10
+  Click Element    xpath=(//*[@id='mForm:data_data']/tr/td[1]/a)[1]
+  Sleep  5
+  Input Text    xpath=//*[@id='mForm:data:cancellationReason']    ${cancellation_data.data.cancellationReason}
+  Execute JavaScript  window.scrollTo(0,0)
+  Click Element    xpath=//*[text()='Відмінити вимогу']
+  Sleep  5
 
 
 Перетворити вимогу про виправлення умов закупівлі в скаргу
