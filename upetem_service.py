@@ -182,7 +182,8 @@ def get_claim_status(claim_status, test_name):
         u'Відхилено': 'cancelled',
         u'Відхилена': 'declined',
         u'Обробляється': 'pending',
-        u'Недійсна': 'invalid'
+        u'Недійсна': 'invalid',
+        u'Проігнорована': 'ignored'
     }
     return status[claim_status]
 

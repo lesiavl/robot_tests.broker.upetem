@@ -224,20 +224,29 @@ Resource  upetem.robot
 
 Отримати інформацію про awards[0].complaintPeriod.endDate
   Run Keyword If  '${TEST NAME}'=='Відображення закінчення періоду подачі скарг на пропозицію'  Подивитись на учасників
-  ${contract_button_is_visible}  Run Keyword And Return Status  Element Should Be Visible  jquery=span:contains('Договір')
-  Run Keyword If  ${contract_button_is_visible}  Click Element  jquery=span:contains('Договір')
+  ${contract_caption}  Set Variable If  '${MODE}'=='belowThreshold'  Оформити договір  Договір
+  ${contract_caption}  Set Variable If  '${MODE}'=='belowThreshold' and '${ROLE}'=='viewer'  Перегляд оцінки  ${contract_caption}
+  ${contract_button_is_visible}  Run Keyword And Return Status  Element Should Be Visible  jquery=span:contains('${contract_caption}')
+  Run Keyword If  ${contract_button_is_visible}  Click Element  jquery=span:contains('${contract_caption}')
+  Sleep  5
   ${period}  Run Keyword And Return Status  Page Should Contain  Період оскаржень
   ${period_selector}  Set Variable If  ${period}  (//div[@id='mForm:data']//td[2])[1]  //*[@id='mForm:pTop']
+  ${period_selector}  Set Variable If  '${MODE}'=='belowThreshold'  (//div[@id='mForm:data']/div)[1]  ${period_selector}
   ${period_index}  Set Variable If  ${period}  19  73
+  ${period_index}  Set Variable If  '${MODE}'=='belowThreshold'  37  ${period_index}
   ${complaintPeriod}  Get Text  xpath=${period_selector}
   ${return_value}  upetem_service.parse_complaintPeriod_endDate  ${complaintPeriod[${period_index}:]}
   [return]  ${return_value}
 
 Подивитись на учасників
-  Click Element  jquery=span:contains('Учасники закупівлі')
-  Wait Until Element Is Visible  id=mForm:partList_list
-  Click Element  jquery=span:contains('Переглянути')
-  Wait Until Element Is Visible  id=mForm:tabs:award_status_label
+  Run Keyword If  '${MODE}'=='belowThreshold'  Execute Javascript  document.getElementById("mForm:lotDesc0").scrollIntoView(false)
+  Run Keyword If  '${MODE}'=='belowThreshold'  Click Element  jquery=span:contains('Результати аукціону')
+  ${of_what}  Set Variable If  '${MODE}'=='belowThreshold'  аукціону  закупівлі
+  Click Element  jquery=span:contains('Учасники ${of_what}')
+  Run Keyword If  '${MODE}'!='belowThreshold'  Wait Until Element Is Visible  id=mForm:partList_list
+  Run Keyword If  '${MODE}'!='belowThreshold'  Click Element  jquery=span:contains('Переглянути')
+  Run Keyword If  '${MODE}'!='belowThreshold'  Wait Until Element Is Visible  id=mForm:tabs:award_status_label
+  Run Keyword If  '${MODE}'=='belowThreshold'  Sleep  5
 
 Отримати інформацію про causeDescription
   ${return_value}  Get Text  id=mForm:cause_description

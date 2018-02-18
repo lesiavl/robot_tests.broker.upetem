@@ -1021,11 +1021,17 @@ Set Multi Ids
   Run Keyword If    "${TEST_NAME}" == "Відображення опису вимоги"    Wait Until Keyword Succeeds  300 s  10 s  subkeywords.Wait For ClaimTender
   Run Keyword If    "${TEST_NAME}" == "Відображення опису вимоги про виправлення умов закупівлі"    Wait Until Keyword Succeeds  300 s  10 s  subkeywords.Wait For ClaimTender
   Run Keyword If    "${TEST_NAME}" == "Відображення опису вимоги про виправлення умов лоту"    Wait Until Keyword Succeeds  300 s  10 s  subkeywords.Wait For ClaimLot
+  :FOR    ${INDEX}    IN RANGE    1    12
+  \  ${complaint is visible}  Run Keyword And Return Status  Element Should Be Visible  xpath=(//*[@id='mForm:data_data']/tr/td[1]/a)[1]
+  \  Exit For Loop If  ${complaint is visible}
+  \  Sleep  15
+  \  Reload Page
   Click Element    xpath=(//*[@id='mForm:data_data']/tr/td[1]/a)[1]
   Sleep  3
   Run Keyword If    "Відображення статусу 'answered'" in "${TEST_NAME}"  Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Answered
   Run Keyword If    "Відображення статусу 'cancelled'" in "${TEST_NAME}"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Cancelled
   Run Keyword If    "Відображення статусу 'resolved'" in "${TEST_NAME}"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Resolved
+  Run Keyword If    "Відображення статусу 'ignored'" in "${TEST_NAME}"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Ignored
   Run Keyword If    "${TEST_NAME}" == "Можливість відповісти на вимогу про виправлення умов закупівлі"    Wait Until Keyword Succeeds  420 s  15 s  subkeywords.Wait For Answered
   Run Keyword If    "${TEST_NAME}" == "Можливість відповісти на вимогу про виправлення умов лоту"    Wait Until Keyword Succeeds  420 s  15 s  subkeywords.Wait For Answered
   Run Keyword If    "${TEST_NAME}" == "Відображення задоволення вимоги"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Satisfied
@@ -1384,7 +1390,6 @@ Set Multi Ids
 Підтвердити підписання контракту
   [Arguments]  ${username}  ${tender_uaid}  ${contract_num}
   Reload Page
-  Element Should Contain  id=mForm:pAcc:contract_status_label  цей договір запропоновано, але він ще не діє. Можливо очікується його підписання
   Click Element  jquery=span:contains('Підписати')
   Click Element  jquery=span:contains('Так'):nth(1)
   Wait Until Element Is Visible  xpath=//*[@id='j_idt12:PKeyFileName']
@@ -1396,30 +1401,41 @@ Set Multi Ids
   Click Button  id=j_idt12:PKeyReadButton
   Wait Until Element Contains  id=PKStatusInfo  Ключ успішно завантажено
   Click Button  id=j_idt12:SignDataButton
-  Wait Until Element Is Not Visible  id=j_idt12:signPanel
-  Sleep  3
-  Choose File  id=mForm:pAcc:j_idt259_input  ${CURDIR}/LICENSE.txt
+  Sleep  10
+  ${file_input}  Set Variable If  '${MODE}'=='belowThreshold'  mForm:j_idt406_input  mForm:pAcc:j_idt259_input
+  Choose File  id=${file_input}  ${CURDIR}/LICENSE.txt
   Wait Until Element Is Visible  id=mForm:docCard:dcType_label
   Click Element  id=mForm:docCard:dcType_label
   Click Element  id=mForm:docCard:dcType_2
-  Click Element  id=mForm:docCard:j_idt143
+  ${save_button}  Set Variable If  '${MODE}'=='belowThreshold'  mForm:docCard:j_idt144  mForm:docCard:j_idt143
+  Click Element  id=${save_button}
   Sleep  60  # обязательно нужно подождать минуту
   ${dc_input}  Evaluate  datetime.datetime.now().strftime("%d.%m.%Y %H:%M")  datetime
-  Input Text  id=mForm:pAcc:dc_input  ${dc_input}
-  Input Text  id=mForm:pAcc:contractNumber  ${contract_num}
-  Click Element  id=mForm:pAcc:periodStartDate_input
+  ${x}  Set Variable If  '${MODE}'=='belowThreshold'  ${EMPTY}  pAcc:
+  Input Text  id=mForm:${x}contractNumber  ${contract_num}
+  Click Element  id=mForm:${x}periodStartDate_input
   Click Element  css=.ui-datepicker-today
-  Click Element  id=mForm:pAcc:periodEndDate_input
+  Sleep  3
+  Click Element  id=mForm:${x}periodEndDate_input
   Click Element  css=.ui-datepicker-today
-  Click Button  id=mForm:bS
-  Sleep  15
-  Click Button  id=mForm:bS2
-  Click Element  xpath=(//*[@id='mForm:j_idt314'])[2]  # Так
+  Sleep  3
+  Input Text     id=mForm:${x}dc_input  ${dc_input}
+  Sleep  1
+  Execute JavaScript  window.scrollTo(0,0)
+  Sleep  1
+  Click Button   id=mForm:bS
+  Sleep  10
+  Run Keyword If  '${MODE}'=='belowThreshold'  Click Element  jquery=span:contains('Завершити закупівлю')
+  Run Keyword If  '${MODE}'=='belowThreshold'  Click Element  jquery=span:contains('Так'):last
+  Run Keyword If  '${MODE}'!='belowThreshold'  Click Element  id=mForm:bS2
+  Run Keyword If  '${MODE}'!='belowThreshold'  Click Element  xpath=(//*[@id='mForm:j_idt314'])[2]  # Так
   Sleep  5
+  ${status_id}  Set Variable If  '${MODE}'=='belowThreshold'  mForm:cs  mForm:pAcc:contract_status_label
+  ${expected_status}  Set Variable If  '${MODE}'=='belowThreshold'  Договір підписано  цей договір підписаний всіма учасниками, і зараз діє на законних підставах
   :FOR    ${INDEX}    IN RANGE    1    11
-  \  ${contract_status}  Get Text  id=mForm:pAcc:contract_status_label
-  \  Exit For Loop If  '${contract_status}' == 'цей договір підписаний всіма учасниками, і зараз діє на законних підставах'
-  \  Sleep  10
+  \  ${contract_status}  Get Text  id=${status_id}
+  \  Exit For Loop If  '${contract_status}' == '${expected_status}'
+  \  Sleep  15
   \  Reload Page
 
 
