@@ -138,6 +138,11 @@ Wait For Resolved
   Sleep  5
   Element Should Contain  xpath=(//tbody/tr[1]/td[2])[1]  Вирішена
 
+Wait For Ignored
+  Reload Page
+  Sleep  5
+  Element Should Contain  xpath=(//tbody/tr[1]/td[2])[1]  Проігнорована
+
 Wait For Satisfied
   Reload Page
   Sleep  5
