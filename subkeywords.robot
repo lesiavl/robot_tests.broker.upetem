@@ -148,6 +148,11 @@ Wait For Invalid
   Sleep  5
   Element Should Contain  xpath=(//tbody/tr[1]/td[2])[1]  Недійсна
 
+Wait For Declined
+  Reload Page
+  Sleep  5
+  Element Should Contain  xpath=(//tbody/tr[1]/td[2])[1]  Відхилена
+
 Wait For Satisfied
   Reload Page
   Sleep  5
