@@ -1032,6 +1032,7 @@ Set Multi Ids
   Run Keyword If    "Відображення статусу 'cancelled'" in "${TEST_NAME}"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Cancelled
   Run Keyword If    "Відображення статусу 'resolved'" in "${TEST_NAME}"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Resolved
   Run Keyword If    "Відображення статусу 'ignored'" in "${TEST_NAME}"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Ignored
+  Run Keyword If    "Відображення статусу 'invalid'" in "${TEST_NAME}"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Invalid
   Run Keyword If    "${TEST_NAME}" == "Можливість відповісти на вимогу про виправлення умов закупівлі"    Wait Until Keyword Succeeds  420 s  15 s  subkeywords.Wait For Answered
   Run Keyword If    "${TEST_NAME}" == "Можливість відповісти на вимогу про виправлення умов лоту"    Wait Until Keyword Succeeds  420 s  15 s  subkeywords.Wait For Answered
   Run Keyword If    "${TEST_NAME}" == "Відображення задоволення вимоги"    Wait Until Keyword Succeeds  300 s  15 s  subkeywords.Wait For Satisfied
