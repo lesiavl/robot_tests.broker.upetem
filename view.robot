@@ -119,17 +119,38 @@ Resource  upetem.robot
   ${return_value}=  Get Value           xpath=//*[@id="mForm:lotItems0:lotItem_0:delLoc1"]
   Run Keyword And Return  Convert To Number  ${return_value}
 
+Отримати інформацію про items[1].deliveryLocation.latitude
+  ${return_value}=  Get Value           xpath=//*[@id="mForm:lotItems0:lotItem_1:delLoc1"]
+  Run Keyword And Return  Convert To Number  ${return_value}
+
 Отримати інформацію про items[0].deliveryLocation.longitude
   ${return_value}=  Get Value           xpath=//*[@id="mForm:lotItems0:lotItem_0:delLoc2"]
   Run Keyword And Return  Convert To Number  ${return_value}
 
+Отримати інформацію про items[1].deliveryLocation.longitude
+  ${return_value}=  Get Value           xpath=//*[@id="mForm:lotItems0:lotItem_1:delLoc2"]
+  Run Keyword And Return  Convert To Number  ${return_value}
+
 Отримати інформацію про items[0].deliveryAddress.countryName
-  ${return_value}=  Get Text           xpath=//*[@id="mForm:bidItem_0:nState"]
+  ${x}  Set Variable If  ${number_of_lots}>0  lotItems0:lotItem_0  bidItem_0
+  ${return_value}=  Get Text           xpath=//*[@id="mForm:${x}:nState"]
+  ${return_value}=  capitalize_first_letter  ${return_value}
+  [return]  ${return_value}
+
+Отримати інформацію про items[1].deliveryAddress.countryName
+  ${x}  Set Variable If  ${number_of_lots}>0  lotItems0:lotItem_1  bidItem_1
+  ${return_value}=  Get Text           xpath=//*[@id="mForm:${x}:nState"]
   ${return_value}=  capitalize_first_letter  ${return_value}
   [return]  ${return_value}
 
 Отримати інформацію про items[0].deliveryAddress.postalCode
-  ${return_value}=  Get Value           xpath=//*[@id='mForm:bidItem_0:zc']
+  ${x}  Set Variable If  ${number_of_lots}>0  lotItems0:lotItem_0  bidItem_0
+  ${return_value}=  Get Value           xpath=//*[@id='mForm:${x}:zc']
+  [return]  ${return_value}
+
+Отримати інформацію про items[1].deliveryAddress.postalCode
+  ${x}  Set Variable If  ${number_of_lots}>0  lotItems0:lotItem_1  bidItem_1
+  ${return_value}=  Get Value           xpath=//*[@id='mForm:${x}:zc']
   [return]  ${return_value}
 
 Отримати інформацію про items[0].deliveryAddress.region
@@ -173,20 +194,40 @@ Resource  upetem.robot
   [return]  ${return_value}
 
 Отримати інформацію про items[0].unit.name
-  ${return_value}=  Get Value                     xpath=//*[@id="mForm:bidItem_0:unit_input"]
-  ${return_value}=  Get Substring                 ${return_value}  4
-  ${return_value}=  Convert To String             ${return_value.replace(' ', '')}
+  ${x}  Set Variable If  ${number_of_lots}>0  lotItems0:lotItem_0  bidItem_0
+  ${return_value}=  Get Value                     xpath=//*[@id="mForm:${x}:unit_input"]
+  ${return_value}=  Fetch From Right  ${return_value}  ${space}
+  ${return_value}=  upetem_service.adapt_unit_name    ${return_value}
+  [return]  ${return_value}
+
+Отримати інформацію про items[1].unit.name
+  ${x}  Set Variable If  ${number_of_lots}>0  lotItems0:lotItem_1  bidItem_1
+  ${return_value}=  Get Value                     xpath=//*[@id="mForm:${x}:unit_input"]
+  ${return_value}=  Fetch From Right  ${return_value}  ${space}
   ${return_value}=  upetem_service.adapt_unit_name    ${return_value}
   [return]  ${return_value}
 
 Отримати інформацію про items[0].unit.code
-  ${return_value}=  Get Value           xpath=//*[@id="mForm:bidItem_0:unit_input"]
-  ${return_value}=  Get Substring  ${return_value}  0  3
-  ${return_value}=  Convert To String  ${return_value}
+  ${x}  Set Variable If  ${number_of_lots}>0  lotItems0:lotItem_0  bidItem_0
+  ${return_value}=  Get Value           xpath=//*[@id="mForm:${x}:unit_input"]
+  ${return_value}=  Fetch From Left  ${return_value}  ${space}
+  [return]  ${return_value}
+
+Отримати інформацію про items[1].unit.code
+  ${x}  Set Variable If  ${number_of_lots}>0  lotItems0:lotItem_1  bidItem_1
+  ${return_value}=  Get Value           xpath=//*[@id="mForm:${x}:unit_input"]
+  ${return_value}=  Fetch From Left  ${return_value}  ${space}
   [return]  ${return_value}
 
 Отримати інформацію про items[0].quantity
-  ${return_value}=  Get Value           xpath=//*[@id="mForm:bidItem_0:amount-read-only"]
+  ${x}  Set Variable If  ${number_of_lots}>0  lotItems0:lotItem_0  bidItem_0
+  ${return_value}=  Get Value           xpath=//*[@id="mForm:${x}:amount-read-only"]
+  ${return_value}=  Convert To Number  ${return_value}
+  [return]  ${return_value}
+
+Отримати інформацію про items[1].quantity
+  ${x}  Set Variable If  ${number_of_lots}>0  lotItems0:lotItem_1  bidItem_1
+  ${return_value}=  Get Value           xpath=//*[@id="mForm:${x}:amount-read-only"]
   ${return_value}=  Convert To Number  ${return_value}
   [return]  ${return_value}
 
@@ -269,6 +310,35 @@ Resource  upetem.robot
   ${return_value}  Get Text  id=mForm:orgFName
   [return]  ${return_value}
 
+Отримати інформацію про procuringEntity.address.countryName
+  ${return_value}  Get Text  id=mForm:orgNState
+  [return]  ${return_value}
+
+Отримати інформацію про procuringEntity.address.locality
+  ${return_value}  Get Text  id=mForm:orgNTer
+  [return]  ${return_value}
+
+Отримати інформацію про procuringEntity.address.postalCode
+  ${return_value}  Get Text  id=mForm:orgZC
+  [return]  ${return_value}
+
+Отримати інформацію про procuringEntity.address.region
+  ${return_value}  Get Text  id=mForm:orgNReg
+  [return]  ${return_value}
+
+Отримати інформацію про procuringEntity.address.streetAddress
+  ${return_value}  Get Text  id=mForm:orgSA
+  [return]  ${return_value}
+
+Отримати інформацію про procuringEntity.identifier.scheme
+  ${country}  Get Text  id=mForm:orgNState
+  ${return_value}  Set Variable If  '${country}'=='Україна'  UA-EDR  other
+  [return]  ${return_value}
+
+Отримати інформацію про procuringEntity.identifier.id
+  ${return_value}  Get Text  id=mForm:orgTin
+  [return]  ${return_value}
+
 Отримати інформацію про documents[0].title
   ${return_value}  Get Text  xpath=//div[@id='mForm:pnlFiles']//a
   [return]  ${return_value}
@@ -297,6 +367,68 @@ Resource  upetem.robot
 Отримати інформацію про awards[0].suppliers[0].contactPoint.email
   Подивитись на учасників
   ${return_value}  Get Value  id=mForm:tabs:rMail
+  [return]  ${return_value}
+
+Отримати інформацію про awards[0].suppliers[0].address.countryName
+  Подивитись на учасників
+  ${return_value}  Get Text  id=mForm:tabs:orgNStateFO
+  [return]  ${return_value}
+
+Отримати інформацію про awards[0].suppliers[0].address.locality
+  Подивитись на учасників
+  ${return_value}  Get Text  id=mForm:tabs:orgNTerFO
+  [return]  ${return_value}
+
+Отримати інформацію про awards[0].suppliers[0].address.postalCode
+  Подивитись на учасників
+  ${return_value}  Get Text  id=mForm:tabs:orgZCFO
+  [return]  ${return_value}
+
+Отримати інформацію про awards[0].suppliers[0].address.region
+  Подивитись на учасників
+  ${return_value}  Get Text  id=mForm:tabs:orgNRegFO
+  [return]  ${return_value}
+
+Отримати інформацію про awards[0].suppliers[0].address.streetAddress
+  Подивитись на учасників
+  ${return_value}  Get Text  id=mForm:tabs:orgSAFO
+  [return]  ${return_value}
+
+Отримати інформацію про awards[0].suppliers[0].identifier.scheme
+  Подивитись на учасників
+  ${country}  Get Text  id=mForm:tabs:orgNStateFO
+  ${return_value}  Set Variable If  '${country}'=='Україна'  UA-EDR  other
+  [return]  ${return_value}
+
+Отримати інформацію про awards[0].suppliers[0].identifier.legalName
+  Подивитись на учасників
+  ${return_value}  Get Text  id=mForm:tabs:orgNameFO
+  [return]  ${return_value}
+
+Отримати інформацію про awards[0].suppliers[0].identifier.id
+  Подивитись на учасників
+  ${return_value}  Get Text  jquery=tr:contains('ЄДРПОУ') td:nth(1)
+  [return]  ${return_value}
+
+Отримати інформацію про awards[0].suppliers[0].name
+  Подивитись на учасників
+  ${return_value}  Get Text  id=mForm:tabs:orgNameFO
+  [return]  ${return_value}
+
+Отримати інформацію про awards[0].value.valueAddedTaxIncluded
+  ${vat}  Get Value  id=mForm:lotVat0:0
+  ${return_value}  Set Variable If  '${vat}'=='true'  ${TRUE}  ${FALSE}
+  [return]  ${return_value}
+
+Отримати інформацію про awards[0].value.currency
+  ${currency}  Get Text  id=mForm:currency_label
+  ${return_value}  Set Variable If  '${currency}'=='грн.'  UAH  other
+  [return]  ${return_value}
+
+Отримати інформацію про awards[0].value.amount
+  Подивитись на учасників
+  ${value}  Get Value  id=mForm:tabs:amount
+  ${return_value}  Convert To Number   ${value}
   [return]  ${return_value}
 
 Отримати інформацію про contracts[0].status
