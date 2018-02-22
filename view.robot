@@ -474,9 +474,13 @@ Resource  upetem.robot
 Отримати інформацію про qualifications[0].status
   Click Element  jquery=span:contains('Кваліфікація учасників')
   Wait Until Page Contains Element  id=mForm:qualificationData
-  ${return_value}  Get Text  xpath=(//table)[1]//tr[2]/td[2]/span
+  ${status}  Get Text  xpath=(//table)[1]//tr[2]/td[2]/span
+  ${return_value}  Set Variable If  '${status}'=='Очікується кваліфікація'  pending  other
   [return]  ${return_value}
 
 Отримати інформацію про qualifications[1].status
-  ${return_value}  Get Text  xpath=(//table)[6]//tr[2]/td[2]/span
+  Click Element  jquery=span:contains('Кваліфікація учасників')
+  Wait Until Page Contains Element  id=mForm:qualificationData
+  ${status}  Get Text  xpath=(//table)[6]//tr[2]/td[2]/span
+  ${return_value}  Set Variable If  '${status}'=='Очікується кваліфікація'  pending  other
   [return]  ${return_value}

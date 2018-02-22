@@ -420,18 +420,26 @@ Set Multi Ids
 
 Змінити лот
   [Arguments]  ${username}  ${tender_uaid}  ${lot_id}  ${fieldname}  ${fieldvalue}
-  Pass Execution  non-critical, let's skip it for now
-  upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
-  Sleep  3
-  Input Text  id=mForm:lotBudg0  "${fieldvalue}"
-  Sleep  15
-  Wait Until Keyword Succeeds  3x  1  Click Element  id=mForm:lotStep0
-  Sleep  2
-  Wait Until Keyword Succeeds  3x  1  Input Text  id=mForm:lotStep0  "${fieldvalue}"
-  Sleep  2
-  Click Button  id=mForm:bSave
+  Run Keyword If  '${fieldname}'!='minimalStep.amount'  upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
+  Execute JavaScript  window.scrollTo(0,1900)
   Sleep  5
+  Run Keyword  Змінити ${fieldname}  ${fieldvalue}
+  Sleep  30
+  Run Keyword If  '${fieldname}'!='value.amount'  Click Element  jquery=span:contains('Опублікувати')
+  Sleep  30
+  Run Keyword And Ignore Error  Click Element  css=#primefacesmessagedlg .ui-icon-closethick
 
+Змінити value.amount
+  [Arguments]  ${fieldvalue}
+  Input Text  id=mForm:lotBudg0  "${fieldvalue}"
+
+Змінити minimalStep.amount
+  [Arguments]  ${fieldvalue}
+  Input Text  id=mForm:lotStep0  "${fieldvalue}"
+
+Змінити description
+  [Arguments]  ${fieldvalue}
+  Input Text  id=mForm:lotDesc0  "${fieldvalue}"
 
 Додати предмет закупівлі в лот
   [Arguments]  ${items}
