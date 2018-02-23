@@ -242,6 +242,8 @@ Switch new lot
 Отримати дані з bid open
   [Arguments]  ${field}
   ${xpath}=    get_xpath.get_bid_xpath    ${field}    @{ID}
+  Sleep  10
+  Reload Page
   ${value}=  Run Keyword If    '${field}' != 'status'    Get Value    xpath=${xpath}
   ...        ELSE IF           '${field}' == 'status'    Get Text    xpath=${xpath}
   ${return_value}=  Run Keyword If    '${field}' != 'status'    Convert To Number    ${value}
