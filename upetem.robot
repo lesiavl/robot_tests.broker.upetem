@@ -278,8 +278,6 @@ ${auction_url}
   Sleep  2
   Click Element                    xpath=//*[@id="mForm:docCard:docCard"]/table/tfoot/tr/td/button[1]
   Sleep  20
-  Input text                       id=mForm:docAdjust     Test text
-  Sleep  20
   Click Element                    xpath=//*[@id="mForm:bSave"]
   Wait Until Element Is Visible    xpath=(//*[@id="primefacesmessagedlg"]/div/a)[1]
   Sleep  20
@@ -506,8 +504,6 @@ Set Multi Ids
     Sleep  3
     Click Element                    xpath=//*[@id="mForm:docCard:docCard"]/table/tfoot/tr/td/button[1]
     Sleep  20
-    Input text                       id=mForm:docAdjust     Додано тестовий документ для лоту
-    Sleep  20
     Click Element                    xpath=//*[@id="mForm:bSave"]
     Sleep  20
     Wait Until Element Is Visible    xpath=(//*[@id="primefacesmessagedlg"]/div/a)[1]
@@ -571,7 +567,7 @@ Set Multi Ids
   ${f_var}  Set Variable If  '${TEST_NAME}' == 'Можливість додати неціновий показник на перший предмет'  ${features}  ${features[2]}
   ${num}  Set Variable If  '${TEST_NAME}' == 'Можливість додати неціновий показник на перший предмет'  3  2
   ${scroll}  Set Variable If  '${TEST_NAME}' == 'Можливість додати неціновий показник на перший предмет'  4830  4300
-  Execute Javascript  window.scrollTo(0,3300)
+  Execute Javascript  window.scrollTo(0,2800)
   Sleep  1
   Click Element  jquery=span:contains('Додати показник'):nth(1)
   Wait Until Page Contains Element  xpath=//div[@id='mForm:lotItems0:meatDataLot0']/table[${num}]//input
@@ -600,7 +596,7 @@ Set Multi Ids
 
 Додати неціновий показник на лот
   [Arguments]  ${username}  ${tender_uaid}  ${features}  ${lot_id}
-  Execute Javascript  window.scrollTo(0,3300)
+  Execute Javascript  window.scrollTo(0,2800)
   Sleep  1
   Click Element  xpath=//div[@id='mForm:lotItems0']//span[text()='Додати показник']
   Sleep  10
@@ -644,7 +640,7 @@ Set Multi Ids
 
 Видалити неціновий показник
   [Arguments]  @{ARGUMENTS}
-  Execute Javascript  window.scrollTo(0,4300)
+  Execute Javascript  window.scrollTo(0,3900)
   Click Element  xpath=//div[@id='mForm:lotItems0:meatDataLot0']/table[3]//td/button
   Wait Until Page Does Not Contain Element  xpath=//div[@id='mForm:lotItems0:meatDataLot0']/table[3]//td/button
   Click Element  id=mForm:bSave

@@ -473,13 +473,23 @@ Resource  upetem.robot
 Отримати інформацію про qualifications[0].status
   Click Element  jquery=span:contains('Кваліфікація учасників')
   Wait Until Page Contains Element  id=mForm:qualificationData
-  ${status}  Get Text  xpath=(//table)[1]//tr[2]/td[2]/span
+  ${status}  Get Text  xpath=(//table//tr[2]/td[2]/span)[1]
   ${return_value}  Set Variable If  '${status}'=='Очікується кваліфікація'  pending  other
   [return]  ${return_value}
 
 Отримати інформацію про qualifications[1].status
   Click Element  jquery=span:contains('Кваліфікація учасників')
   Wait Until Page Contains Element  id=mForm:qualificationData
-  ${status}  Get Text  xpath=(//table)[6]//tr[2]/td[2]/span
+  ${status}  Get Text  xpath=(//table//tr[2]/td[2]/span)[2]
   ${return_value}  Set Variable If  '${status}'=='Очікується кваліфікація'  pending  other
+  [return]  ${return_value}
+
+Отримати інформацію про qualificationPeriod.endDate
+  :FOR    ${INDEX}    IN RANGE    1    11
+  \  ${date_is_visible}  Run Keyword And Return Status  Element Should Be Visible  id=mForm:dq
+  \  Exit For Loop If  ${date_is_visible}
+  \  Sleep  15
+  \  Reload Page
+  ${return_value}  Get Text  id=mForm:dq
+  ${return_value}  upetem_service.parse_date  ${return_value}
   [return]  ${return_value}
