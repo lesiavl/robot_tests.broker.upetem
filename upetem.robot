@@ -542,6 +542,8 @@ Set Multi Ids
 
 Додати неціновий показник на тендер
   [Arguments]  ${features}
+  Execute Javascript  window.scrollTo(0,550)
+  Sleep  1
   Click Element  xpath=//*[@id='mForm:meatpanel']//span
   Sleep  10
   Execute Javascript  document.getElementById("mForm:meatpanel").scrollIntoView(false)
