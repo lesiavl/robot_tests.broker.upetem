@@ -40,6 +40,8 @@ ${auction_url}
   Input text   id=mForm:email      ${USERS.users['${username}'].login}
   Input text   id=mForm:pwd      ${USERS.users['${username}'].password}
   Click Button   id=mForm:login
+  Sleep  10
+  Run Keyword And Ignore Error  Click Element  jquery=span:contains('Так'):last
   Wait Until Page Contains Element  css=div.cabinet-user-name
 
 
@@ -620,7 +622,10 @@ Set Multi Ids
   \  Press Key  css=div.ui-cell-editor-input[style='display: block;'] input  \\127  # necessary workaround
   \  Input Text     jquery=.ui-datatable-tablewrapper:nth(${num}) td:nth(${i+2}) input  ${value}
   \  ${i}  Set Variable  ${i+4}
+  Capture Page Screenshot
   Run Keyword If  '${TEST_NAME}' == 'Можливість додати неціновий показник на перший лот'  Click Element  id=mForm:bSave
+  Sleep  15
+  Capture Page Screenshot
   Sleep  10
 
 
@@ -1090,6 +1095,7 @@ Set Multi Ids
   upetem.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
   ${tender_status}=  Get Text  xpath=//*[@id="mForm:status"]
   Run Keyword If  '${tender_status}' == 'Період уточнень'  Fail  "Неможливо подати цінову пропозицію в період уточнень"
+  Sleep  10
   Click Element    xpath=//span[text()='Подати пропозицію']
 
   Run Keyword If    '${mode}' == 'belowThreshold'    subkeywords.Подати цінову пропозицію для below    ${bid}
