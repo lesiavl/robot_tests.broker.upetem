@@ -32,8 +32,8 @@ def adapt_unit_name(data):
         u"наб.": u"набір",
         u"шт.": u"штуки",
         u"упак.": u"упаковка",
-        u"флак.": u"флакон"
-    }.get(data, data.lower())
+        u"Флакон": u"флакон"
+    }.get(data, data)
 
 
 def adapt_data_view(data):
