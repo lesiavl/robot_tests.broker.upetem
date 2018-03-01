@@ -31,8 +31,7 @@ def adapt_unit_name(data):
     return {
         u"наб.": u"набір",
         u"шт.": u"штуки",
-        u"упак.": u"упаковка",
-        u"Флакон": u"флакон"
+        u"упак.": u"упаковка"
     }.get(data, data)
 
 
@@ -193,6 +192,7 @@ def get_claim_status(claim_status, test_name):
 def get_resolution_type(resolution):
     types = {
         u'Вирішено': 'resolved',
+        u'Задоволено': 'resolved',
         u'Відхилено': 'declined',
         u'Недійсно': 'invalid'
     }
