@@ -836,7 +836,8 @@ Set Multi Ids
 Створити вимогу про виправлення визначення переможця
   [Arguments]  ${username}  ${tender_uaid}  ${claim}  ${award_index}  ${document}=${None}
   upetem.Пошук тендера по ідентифікатору  ${username}  ${tender_uaid}
-  Execute Javascript  window.scrollTo(0,1100)
+  Execute Javascript  window.scrollTo(0,700)
+  Sleep  3
   Click Element  jquery=span:contains('Результати аукціону')
   Sleep  5
   Click Element  jquery=span:contains('Учасники аукціону')
