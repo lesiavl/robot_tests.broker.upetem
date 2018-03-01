@@ -836,6 +836,11 @@ Set Multi Ids
 Створити вимогу про виправлення визначення переможця
   [Arguments]  ${username}  ${tender_uaid}  ${claim}  ${award_index}  ${document}=${None}
   upetem.Пошук тендера по ідентифікатору  ${username}  ${tender_uaid}
+  :FOR    ${INDEX}    IN RANGE    1    11
+  \  ${visible}  Run Keyword And Return Status  Element Should Be Visible  jquery=span:contains('Результати аукціону')
+  \  Exit For Loop If  ${visible}
+  \  Sleep  10
+  \  Reload Page
   Execute Javascript  window.scrollTo(0,700)
   Sleep  3
   Click Element  jquery=span:contains('Результати аукціону')
@@ -1253,7 +1258,8 @@ Set Multi Ids
   \  Exit For Loop If  ${visible}
   \  Sleep  10
   \  Reload Page
-  Execute Javascript  window.scrollTo(0,1100)
+  Execute Javascript  window.scrollTo(0,700)
+  Sleep  3
   Click Element  jquery=span:contains('Результати аукціону')
   Sleep  5
   Click Element  jquery=span:contains('Учасники аукціону')
