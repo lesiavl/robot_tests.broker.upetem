@@ -174,8 +174,9 @@ ${auction_url}
   Run Keyword If  '${mode}' == 'openeu'  Click Element  id=mForm:rLang_label
   Run Keyword If  '${mode}' == 'openeu'  Click Element  id=mForm:rLang_2
 
-  Run Keyword If  '${mode}' == 'negotiation'  Execute Javascript  document.getElementById("mForm:cause_btn").scrollIntoView(false)
+  Run Keyword If  '${mode}'=='negotiation'  Execute Javascript  window.scrollTo(0,900)
   Run Keyword If  '${mode}'=='negotiation'  Click Element                       xpath=//*[@id='${vat_selector}']/tbody/tr/td[1]//div[2]
+  Run Keyword If  '${mode}'=='negotiation'  Execute Javascript  window.scrollTo(0,500)
   Run Keyword If  '${mode}'=='negotiation'  Click Button  id=mForm:cause_btn
   ${cause}  Run Keyword If  '${mode}'=='negotiation'  Get From Dictionary  ${prepared_tender_data}  cause
   Run Keyword If  '${mode}'=='negotiation'  Click Element  xpath=//div/div/input[@value='${cause}']/../..
