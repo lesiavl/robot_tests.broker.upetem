@@ -1414,22 +1414,22 @@ Set Multi Ids
   Reload Page
   Click Element  jquery=span:contains('Підписати')
   Click Element  jquery=span:contains('Так'):nth(1)
-  Wait Until Element Is Visible  xpath=//*[@id='j_idt12:PKeyFileName']
+  Wait Until Element Is Visible  xpath=//*[@id='j_idt12:j_idt13:PKeyFileName']
   Choose File  id=PKeyFileInput  ${CURDIR}/Key-6.dat
-  Input Text  id=j_idt12:PKeyPassword  12345677
+  Input Text  id=j_idt12:j_idt13:PKeyPassword  12345677
   Click Element  id=CAsServersSelect
   Sleep  3
   Click Element  jquery=option:contains('Тестовий ЦСК')
-  Click Button  id=j_idt12:PKeyReadButton
+  Click Button  id=j_idt12:j_idt13:PKeyReadButton
   Wait Until Element Contains  id=PKStatusInfo  Ключ успішно завантажено
-  Click Button  id=j_idt12:SignDataButton
+  Click Button  id=j_idt12:j_idt13:SignDataButton
   Sleep  10
-  ${file_input}  Set Variable If  '${MODE}'=='belowThreshold'  mForm:j_idt406_input  mForm:pAcc:j_idt259_input
+  ${file_input}  Set Variable If  '${MODE}'=='belowThreshold'  mForm:j_idt436_input  mForm:pAcc:j_idt259_input
   Choose File  id=${file_input}  ${CURDIR}/LICENSE.txt
   Wait Until Element Is Visible  id=mForm:docCard:dcType_label
   Click Element  id=mForm:docCard:dcType_label
   Click Element  id=mForm:docCard:dcType_2
-  ${save_button}  Set Variable If  '${MODE}'=='belowThreshold'  mForm:docCard:j_idt144  mForm:docCard:j_idt143
+  ${save_button}  Set Variable If  '${MODE}'=='belowThreshold'  mForm:docCard:j_idt174  mForm:docCard:j_idt143
   Click Element  id=${save_button}
   Sleep  60  # обязательно нужно подождать минуту
   ${dc_input}  Evaluate  datetime.datetime.now().strftime("%d.%m.%Y %H:%M")  datetime
