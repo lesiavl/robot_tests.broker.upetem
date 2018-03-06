@@ -1450,7 +1450,7 @@ Set Multi Ids
   Run Keyword If  '${MODE}'=='belowThreshold'  Click Element  jquery=span:contains('Завершити закупівлю')
   Run Keyword If  '${MODE}'=='belowThreshold'  Click Element  jquery=span:contains('Так'):last
   Run Keyword If  '${MODE}'!='belowThreshold'  Click Element  id=mForm:bS2
-  Run Keyword If  '${MODE}'!='belowThreshold'  Click Element  xpath=(//*[@id='mForm:j_idt314'])[2]  # Так
+  Run Keyword If  '${MODE}'!='belowThreshold'  Click Element  xpath=(//*[@id='mForm:j_idt344'])[2]  # Так
   Sleep  5
   ${status_id}  Set Variable If  '${MODE}'=='belowThreshold'  mForm:cs  mForm:pAcc:contract_status_label
   ${expected_status}  Set Variable If  '${MODE}'=='belowThreshold'  Договір підписано  цей договір підписаний всіма учасниками, і зараз діє на законних підставах
