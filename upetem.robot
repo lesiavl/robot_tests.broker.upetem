@@ -1461,6 +1461,7 @@ Set Multi Ids
   \  Reload Page
 
 
+
 #                               OPEN PROCUREMENT                                #
 
 Підтвердити кваліфікацію
