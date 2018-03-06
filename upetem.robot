@@ -1424,12 +1424,12 @@ Set Multi Ids
   Wait Until Element Contains  id=PKStatusInfo  Ключ успішно завантажено
   Click Button  id=j_idt12:j_idt13:SignDataButton
   Sleep  10
-  ${file_input}  Set Variable If  '${MODE}'=='belowThreshold'  mForm:j_idt436_input  mForm:pAcc:j_idt259_input
+  ${file_input}  Set Variable If  '${MODE}'=='belowThreshold'  mForm:j_idt436_input  mForm:pAcc:j_idt289_input
   Choose File  id=${file_input}  ${CURDIR}/LICENSE.txt
   Wait Until Element Is Visible  id=mForm:docCard:dcType_label
   Click Element  id=mForm:docCard:dcType_label
   Click Element  id=mForm:docCard:dcType_2
-  ${save_button}  Set Variable If  '${MODE}'=='belowThreshold'  mForm:docCard:j_idt174  mForm:docCard:j_idt143
+  ${save_button}  Set Variable If  '${MODE}'=='belowThreshold'  mForm:docCard:j_idt174  mForm:docCard:j_idt173
   Click Element  id=${save_button}
   Sleep  60  # обязательно нужно подождать минуту
   ${dc_input}  Evaluate  datetime.datetime.now().strftime("%d.%m.%Y %H:%M")  datetime
@@ -1450,7 +1450,7 @@ Set Multi Ids
   Run Keyword If  '${MODE}'=='belowThreshold'  Click Element  jquery=span:contains('Завершити закупівлю')
   Run Keyword If  '${MODE}'=='belowThreshold'  Click Element  jquery=span:contains('Так'):last
   Run Keyword If  '${MODE}'!='belowThreshold'  Click Element  id=mForm:bS2
-  Run Keyword If  '${MODE}'!='belowThreshold'  Click Element  xpath=(//*[@id='mForm:j_idt314'])[2]  # Так
+  Run Keyword If  '${MODE}'!='belowThreshold'  Click Element  xpath=(//*[@id='mForm:j_idt344'])[2]  # Так
   Sleep  5
   ${status_id}  Set Variable If  '${MODE}'=='belowThreshold'  mForm:cs  mForm:pAcc:contract_status_label
   ${expected_status}  Set Variable If  '${MODE}'=='belowThreshold'  Договір підписано  цей договір підписаний всіма учасниками, і зараз діє на законних підставах
