@@ -122,11 +122,12 @@ ${auction_url}
   Click Element                       id=mForm:cKind_label
   Sleep  2
   Click Element                       xpath=//div[@id='mForm:cKind_panel']//li[3]
+  Click Element                       xpath=//label[@for="mForm:vat:0"]
+  Execute Javascript                  window.scrollTo(0,750)
+  Sleep  15
   Input text                          id=mForm:lotBudg0   ${budget}
   Input text                          id=mForm:lotTitle0  ${lot_title}
   Input text                          id=mForm:lotDesc0   ${lot_desc}
-  ${vat_selector}=  Set Variable If  ${NUMBER_OF_LOTS}==0  mForm:vat  mForm:lotVat0
-  Run Keyword If  '${mode}'!='negotiation'  Click Element                       xpath=//*[@id='${vat_selector}']/tbody/tr/td[1]//div[2]
   ${step_selector}=  Set Variable If  ${NUMBER_OF_LOTS}==0  mForm:step  mForm:lotStep0
 
   # two lines below not needed for open ua
@@ -174,8 +175,6 @@ ${auction_url}
   Run Keyword If  '${mode}' == 'openeu'  Click Element  id=mForm:rLang_label
   Run Keyword If  '${mode}' == 'openeu'  Click Element  id=mForm:rLang_2
 
-  Run Keyword If  '${mode}'=='negotiation'  Execute Javascript  window.scrollTo(0,900)
-  Run Keyword If  '${mode}'=='negotiation'  Click Element                       xpath=//*[@id='${vat_selector}']/tbody/tr/td[1]//div[2]
   Run Keyword If  '${mode}'=='negotiation'  Execute Javascript  window.scrollTo(0,500)
   Run Keyword If  '${mode}'=='negotiation'  Click Button  id=mForm:cause_btn
   ${cause}  Run Keyword If  '${mode}'=='negotiation'  Get From Dictionary  ${prepared_tender_data}  cause
@@ -1459,6 +1458,7 @@ Set Multi Ids
   \  Exit For Loop If  '${contract_status}' == '${expected_status}'
   \  Sleep  15
   \  Reload Page
+
 
 
 #                               OPEN PROCUREMENT                                #
