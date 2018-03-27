@@ -103,6 +103,7 @@ ${auction_url}
   ${name_en}=  Run Keyword If  '${mode}'=='openeu'  Get From Dictionary    ${prepared_tender_data.procuringEntity.contactPoint}     name_en
   Selenium2Library.Switch Browser     ${ARGUMENTS[0]}
   Wait Until Element Is Visible       xpath=//a[text()='Закупівлі']
+  Execute Javascript  window.scrollTo(0,0)
   Click Element                       xpath=//a[text()='Закупівлі']
   Wait Until Page Contains Element    xpath=//*[text()='НОВА ЗАКУПІВЛЯ']
   Click Element                       xpath=//*[text()='НОВА ЗАКУПІВЛЯ']
@@ -113,6 +114,7 @@ ${auction_url}
   Click Element                       xpath=${procurement_type_xpath}
   Sleep  2
   Click Element                       xpath=//*[@id="mForm:chooseProcurementTypeBtn"]
+  Sleep  2
   Run Keyword If  '${mode}'=='negotiation'  Wait Until Element Is Visible  jquery=.ui-icon-closethick:nth(4)
   Run Keyword If  '${mode}'=='negotiation'  Click Element  jquery=.ui-icon-closethick:nth(4)
 
@@ -125,11 +127,9 @@ ${auction_url}
   Sleep  2
   Click Element                       xpath=//label[@for="mForm:vat:0"]
   Sleep  10
-  Input text                          id=mForm:lotTitle0  ${lot_title}
-  Sleep  10
   Input text                          id=mForm:lotBudg0   ${budget}
   Sleep  20
-  Input text                          id=mForm:lotDesc0   ${lot_desc}
+  Input text                          id=mForm:lotTitle0  ${lot_title}
   Sleep  20
   ${step_selector}=  Set Variable If  ${NUMBER_OF_LOTS}==0  mForm:step  mForm:lotStep0
   Run Keyword If  '${mode}'!='negotiation'  Input text  id=${step_selector}  ${step_rate}
@@ -148,8 +148,9 @@ ${auction_url}
   Input text                          id=mForm:lotItems0:lotItem_0:cCpv_input   ${cpv_id}
   Wait Until Element Is Visible       xpath=//div[@id='mForm:lotItems0:lotItem_0:cCpv_panel']//td[1]/span
   Click Element                       xpath=//div[@id='mForm:lotItems0:lotItem_0:cCpv_panel']//td[1]/span
-  Sleep  5
+  Sleep  10
   Run Keyword If  ${cpv_id_1}!=336   Input text  id=mForm:lotItems0:lotItem_0:cDkpp_input    ${dkpp_id}
+  Sleep  5
   Input text                          id=mForm:lotItems0:lotItem_0:subject    ${item_description}
   Sleep  5
   Input text                          id=mForm:lotItems0:lotItem_0:unit_input    ${code}
@@ -196,6 +197,8 @@ ${auction_url}
   ${calculated_step}  Run Keyword If  '${mode}' == 'openeu'  Get Value  id=mForm:lotStepPercent0
   ${updated_step}  Run Keyword If  '${mode}' == 'openeu'  Evaluate  ${prepared_tender_data.value.amount}*${calculated_step}/100
   Run Keyword If  '${mode}' == 'openeu'  upetem_service.adapt_step  ${ARGUMENTS[1]}  ${updated_step}
+  Input text                          id=mForm:lotDesc0   ${lot_desc}
+  Capture Page Screenshot
   # Save
   Click Element                       xpath=//*[@id="mForm:bSave"]
 
