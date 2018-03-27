@@ -122,14 +122,19 @@ ${auction_url}
   Click Element                       id=mForm:cKind_label
   Sleep  2
   Click Element                       xpath=//div[@id='mForm:cKind_panel']//li[3]
+  Sleep  2
   Click Element                       xpath=//label[@for="mForm:vat:0"]
-  Execute Javascript                  window.scrollTo(0,750)
-  Sleep  15
-  Input text                          id=mForm:lotBudg0   ${budget}
+  Sleep  10
   Input text                          id=mForm:lotTitle0  ${lot_title}
+  Sleep  10
+  Input text                          id=mForm:lotBudg0   ${budget}
+  Sleep  20
   Input text                          id=mForm:lotDesc0   ${lot_desc}
+  Sleep  20
   ${step_selector}=  Set Variable If  ${NUMBER_OF_LOTS}==0  mForm:step  mForm:lotStep0
-
+  Run Keyword If  '${mode}'!='negotiation'  Input text  id=${step_selector}  ${step_rate}
+  Sleep  10
+  Capture Page Screenshot
   # two lines below not needed for open ua
   Run Keyword If  '${mode}'=='belowThreshold'  Input text  xpath=//*[@id="mForm:dEA_input"]  ${enquiry_period_end_date}
   Run Keyword If  '${mode}'=='belowThreshold'  Input text  xpath=//*[@id="mForm:dSPr_input"]  ${tender_period_start_date}
@@ -186,7 +191,6 @@ ${auction_url}
 
   Sleep  2
   Run Keyword if   '${mode}' == 'negotiation'  upetem.Додати предмет закупівлі в лот  ${items}
-  Run Keyword If  '${mode}'!='negotiation'  Input text  id=${step_selector}  ${step_rate}
   Run Keyword If  ${cpv_id_1}==336   Ввести МНН код для всіх предметів  ${items}
   Sleep  10
   ${calculated_step}  Run Keyword If  '${mode}' == 'openeu'  Get Value  id=mForm:lotStepPercent0
