@@ -170,7 +170,7 @@ def convert_status(tender_status):
         u'Період аукціону': u'active.auction',
         u'Період уточнень': u'active.enquiries',
         u'Перед-кваліфікаційний період': u'active.pre-qualification',
-        u'Блокування перед аукціоном': u'active.pre-qualification.stand-still'
+        u'Період оскарження': u'active.pre-qualification.stand-still'
     }
     return status[tender_status]
 
