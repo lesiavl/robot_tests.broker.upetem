@@ -350,7 +350,7 @@ Resource  upetem.robot
 Отримати інформацію про awards[0].status
   Подивитись на учасників
   ${status}  Get Text  id=mForm:tabs:award_status_label
-  ${return_value}  Set Variable If  '${status}'=='Закупівлю виграв учасник'  active  other status
+  ${return_value}  Set Variable If  '${status}'=='Переможець'  active  other status
   [return]  ${return_value}
 
 Отримати інформацію про awards[0].suppliers[0].contactPoint.telephone
