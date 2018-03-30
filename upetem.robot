@@ -1281,6 +1281,7 @@ Set Multi Ids
   Sleep  5
   Click Element  jquery=span:contains('Зберегти'):first
   Sleep  10
+  Run Keyword And Ignore Error  Click Element  jquery=div:contains('Увага!') span.ui-icon-closethick:first
 
 
 Підтвердити постачальника
