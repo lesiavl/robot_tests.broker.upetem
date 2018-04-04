@@ -243,8 +243,10 @@ ${auction_url}
   \  Sleep  10
   \  Click Element  id=mForm:search_button
   Sleep  5
+  Element Should Be Visible  xpath=//a[text()='${ARGUMENTS[1]}']/ancestor::div[1]/span[2]/a
   Wait Until Keyword Succeeds  3x  1  Click Element    xpath=//a[text()='${ARGUMENTS[1]}']/ancestor::div[1]/span[2]/a
   Wait Until Page Contains Element  id=mForm:nBid
+  Sleep  5
 
 
 Оновити сторінку з тендером
@@ -382,7 +384,7 @@ Set Multi Ids
   Run Keyword If    '${TEST_NAME}' == 'Відображення опису номенклатури у новому лоті'    subkeywords.Switch new lot    ${username}  ${tender_uaid}
   Run Keyword If    '${TEST_NAME}' == 'Відображення опису нової номенклатури'    upetem.Пошук тендера по ідентифікатору    ${username}  ${tender_uaid}
   Run Keyword If    '${TEST_NAME}' == 'Відображення опису нової номенклатури'    Wait Until Keyword Succeeds  300 s  30s  subkeywords.Wait For NewItem    ${item_id}
-  Sleep  5
+  Sleep  10
   ${value}=    subkeywords.Отримати дані з поля item    ${field_name}  ${item_id}
   ${value}=    subkeywords.Адаптувати дані з поля item    ${field_name}  ${value}
   [return]    ${value}
@@ -429,12 +431,17 @@ Set Multi Ids
   [Arguments]  ${username}  ${tender_uaid}  ${lot_id}  ${fieldname}  ${fieldvalue}
   Run Keyword If  '${fieldname}'!='minimalStep.amount'  upetem.Пошук тендера по ідентифікатору    ${username}    ${tender_uaid}
   Execute JavaScript  window.scrollTo(0,1900)
-  Sleep  5
+  Sleep  10
+  Capture Page Screenshot
   Run Keyword  Змінити ${fieldname}  ${fieldvalue}
   Sleep  30
   Run Keyword If  '${fieldname}'!='value.amount'  Click Element  jquery=span:contains('Опублікувати')
   Sleep  30
+  Capture Page Screenshot
+  Sleep  3
   Run Keyword And Ignore Error  Click Element  css=#primefacesmessagedlg .ui-icon-closethick
+  Sleep  3
+  Capture Page Screenshot
 
 Змінити value.amount
   [Arguments]  ${fieldvalue}
@@ -516,11 +523,12 @@ Set Multi Ids
     Click Element                    xpath=//*[@id="mForm:bSave"]
     Sleep  20
     Wait Until Element Is Visible    xpath=(//*[@id="primefacesmessagedlg"]/div/a)[1]
-    Sleep  10
+    Sleep  15
     Click Element                    xpath=(//*[@id="primefacesmessagedlg"]/div/a)[1]
-    Sleep  10
+    Sleep  15
+    Capture Page Screenshot
     Reload Page
-    Sleep  10
+    Sleep  15
 
 
 Видалити лот
@@ -608,9 +616,10 @@ Set Multi Ids
 Додати неціновий показник на лот
   [Arguments]  ${username}  ${tender_uaid}  ${features}  ${lot_id}
   Execute Javascript  window.scrollTo(0,2800)
-  Sleep  1
+  Sleep  3
+  Capture Page Screenshot
   Click Element  xpath=//div[@id='mForm:lotItems0']//span[text()='Додати показник']
-  Sleep  10
+  Sleep  15
   ${iter_items}  Set Variable If  '${TEST_NAME}' == 'Можливість додати неціновий показник на перший лот'  ${features}  ${features[0]}
   ${num}  Set Variable If  '${TEST_NAME}' == 'Можливість додати неціновий показник на перший лот'  3  1
   Wait Until Page Contains Element  xpath=(//div[@id='mForm:lotItems0:meatDataLot0']//input[contains(@id,'meatTitle')])[${num}]
@@ -1165,6 +1174,7 @@ Set Multi Ids
   Sleep  20
   Click Element    xpath=//*[text()='Зберегти']
   Sleep  25
+  Capture Page Screenshot
 
 
 Змінити документ в ставці
