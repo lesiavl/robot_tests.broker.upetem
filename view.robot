@@ -237,28 +237,28 @@ Resource  upetem.robot
 Отримати інформацію про questions[0].title
   Sleep  5
   Click Element  xpath=//*[text()="Обговорення"]
-  Sleep  5
+  Sleep  10
   ${return_value}=  Get Text  xpath=//*[@id="mForm:data_data"]/tr[1]/td[1]/span[1]
   [return]  ${return_value}
 
 Отримати інформацію про questions[0].description
   Sleep  5
   Click Element  xpath=//*[text()="Обговорення"]
-  Sleep  5
+  Sleep  10
   ${return_value}=  Get Text  xpath=//*[@id="mForm:data_data"]/tr[1]/td[1]/span[2]
   [return]  ${return_value}
 
 Отримати інформацію про questions[0].date
   Sleep  5
   Click Element  xpath=//*[text()="Обговорення"]
-  Sleep  5
+  Sleep  10
   ${return_value}=  Get Text  xpath=//*[@id="mForm:data_data"]/tr/td[4]
   [return]  ${return_value}
 
 Отримати інформацію про questions[0].answer
   Sleep  5
   Click Element  xpath=//*[text()="Обговорення"]
-  Sleep  5
+  Sleep  10
   ${return_value}=  Get Text  xpath=//*[@id="mForm:data_data"]/tr[2]/td[1]/span[2]
   [return]  ${return_value}
 
