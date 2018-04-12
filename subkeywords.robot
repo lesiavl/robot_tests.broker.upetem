@@ -193,11 +193,12 @@ Switch new lot
   Set Suite Variable    @{ID}    ${lot_ids}
 
   :FOR  ${index}  ${lot_id}  IN ENUMERATE  @{lot_ids}
-  \  Execute JavaScript                window.scrollTo(0, 500)
-  \  Sleep  1
-  \  Click Element    xpath=(//span[contains(text(), '${lot_id}')]//ancestor::div[2]/div[2]//button/span)[1]
+  \  Execute JavaScript                window.scrollTo(0, 550)
   \  Sleep  3
+  \  Click Element    xpath=(//span[contains(text(), '${lot_id}')]//ancestor::div[2]/div[2]//button/span)[1]
+  \  Sleep  10
   \  ${amount}=    upetem_service.convert_float_to_string    ${bid.data.lotValues[${index}].value.amount}
+  \  Sleep  5
   \  Input Text    xpath=//span[contains(text(), '${lot_id}')]//ancestor::div[2]/div[2]/table/tbody/tr[7]/td[2]//input    ${amount}
 
   Run Keyword If    ${meat} > 0    subkeywords.Обрати неціновий показник    ${bid}    ${features_ids}

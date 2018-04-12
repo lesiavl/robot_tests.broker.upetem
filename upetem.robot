@@ -1143,8 +1143,9 @@ Set Multi Ids
   :FOR    ${INDEX}    IN RANGE    1    11
   \  ${bid_status}=  Get Text  xpath=//*[@id='mForm:data']/div[1]/table/tbody/tr[5]/td[2]
   \  Exit For Loop If  '${bid_status}' == 'Зареєстрована'
-  \  Sleep  15
+  \  Sleep  20
   \  Reload Page
+  Should Be Equal  '${bid_status}'  'Зареєстрована'
 
 
 Змінити цінову пропозицію
@@ -1218,6 +1219,7 @@ Set Multi Ids
   [Arguments]  ${username}  ${tender_uaid}  ${field}
   upetem.Пошук цінової пропозиції  ${username}  ${tender_uaid}
   Run Keyword If    "${TEST_NAME}" == "Відображення зміни статусу першої пропозиції після редагування інформації про тендер"    Wait Until Keyword Succeeds  420 s  15 s  subkeywords.Wait For Status
+  Run Keyword If    "${TEST_NAME}" == "Відображення зміни статусу другої пропозиції після редагування інформації про тендер"    Wait Until Keyword Succeeds  420 s  15 s  subkeywords.Wait For Status
   ${return_value}=    Run Keyword If    '${mode}' == 'belowThreshold'    subkeywords.Отримати дані з bid below
   ...    ELSE IF                      '${mode}' != 'belowThreshold'    subkeywords.Отримати дані з bid open    ${field}
   [return]  ${return_value}
