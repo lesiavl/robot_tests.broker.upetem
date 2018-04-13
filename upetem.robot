@@ -1443,8 +1443,7 @@ Set Multi Ids
   Wait Until Element Contains  id=PKStatusInfo  Ключ успішно завантажено
   Click Button  id=j_idt12:j_idt13:SignDataButton
   Sleep  10
-  ${file_input}  Set Variable If  '${MODE}'=='belowThreshold'  mForm:j_idt436_input  mForm:pAcc:j_idt289_input
-  Choose File  id=${file_input}  ${CURDIR}/LICENSE.txt
+  Choose File  xpath=//span[text()='Завантажити підписаний договір']/../input  ${CURDIR}/LICENSE.txt
   Wait Until Element Is Visible  id=mForm:docCard:dcType_label
   Click Element  id=mForm:docCard:dcType_label
   Click Element  id=mForm:docCard:dcType_2
@@ -1466,6 +1465,7 @@ Set Multi Ids
   Sleep  1
   Click Button   id=mForm:bS
   Sleep  10
+  Run Keyword And Ignore Error  Click Element  jquery=.ui-icon-closethick:nth(3)
   Run Keyword If  '${MODE}'=='belowThreshold'  Click Element  jquery=span:contains('Завершити закупівлю')
   Run Keyword If  '${MODE}'=='belowThreshold'  Click Element  jquery=span:contains('Так'):last
   Run Keyword If  '${MODE}'!='belowThreshold'  Click Element  id=mForm:bS2
