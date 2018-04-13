@@ -1465,6 +1465,7 @@ Set Multi Ids
   Sleep  1
   Click Button   id=mForm:bS
   Sleep  10
+  Run Keyword And Ignore Error  Click Element  jquery=.ui-icon-closethick:nth(3)
   Run Keyword If  '${MODE}'=='belowThreshold'  Click Element  jquery=span:contains('Завершити закупівлю')
   Run Keyword If  '${MODE}'=='belowThreshold'  Click Element  jquery=span:contains('Так'):last
   Run Keyword If  '${MODE}'!='belowThreshold'  Click Element  id=mForm:bS2
